@@ -1,0 +1,8 @@
+.git
+.gitignore
+#!include:.gitignore
+infra/
+benchmarks/
+k6/
+k8s/
+scripts/

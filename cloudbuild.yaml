@@ -1,0 +1,19 @@
+steps:
+  - id: bad
+    name: gcr.io/cloud-builders/docker
+    args: [build, -f, deploy/bad/Dockerfile, -t, "${_REPO}/bad:latest", .]
+    waitFor: ["-"]
+  - id: good
+    name: gcr.io/cloud-builders/docker
+    args: [build, -f, deploy/good/Dockerfile, -t, "${_REPO}/good:latest", .]
+    waitFor: ["-"]
+  - id: payments
+    name: gcr.io/cloud-builders/docker
+    args: [build, -t, "${_REPO}/payments:latest", payments]
+    waitFor: ["-"]
+images:
+  - "${_REPO}/bad:latest"
+  - "${_REPO}/good:latest"
+  - "${_REPO}/payments:latest"
+options:
+  logging: CLOUD_LOGGING_ONLY

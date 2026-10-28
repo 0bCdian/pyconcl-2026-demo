@@ -1,0 +1,8 @@
+# Copy to backend.tf (gitignored) to keep state in GCS, then `tofu init -migrate-state`.
+# Without it the state stays local, which is fine for a personal project.
+terraform {
+  backend "gcs" {
+    bucket = "my-project-tofu-state"
+    prefix = "pycon"
+  }
+}

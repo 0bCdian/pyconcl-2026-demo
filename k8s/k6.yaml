@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6
+  namespace: demo
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:2.3.0
+          args: ["run", "-o", "experimental-prometheus-rw", "/scripts/test.js"]
+          env:
+            - {name: RATE, value: "RATE_VALUE"}
+            - {name: DURATION, value: "DURATION_VALUE"}
+            - {name: K6_PROMETHEUS_RW_SERVER_URL, value: http://prometheus-operated.monitoring:9090/api/v1/write}
+            - {name: K6_PROMETHEUS_RW_TREND_STATS, value: "avg,p(95),p(99)"}
+          resources:
+            requests: {cpu: "1", memory: 512Mi}
+          volumeMounts:
+            - {name: scripts, mountPath: /scripts}
+      volumes:
+        - name: scripts
+          configMap: {name: k6-script}

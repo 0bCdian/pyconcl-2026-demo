@@ -1,0 +1,5 @@
+project_id      = "my-pycon-demo"
+billing_account = "012345-6789AB-CDEF01"
+region          = "southamerica-west1"
+budget_amount   = 30
+budget_currency = "USD"

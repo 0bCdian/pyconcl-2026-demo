@@ -1,0 +1,18 @@
+alertmanager: {enabled: false}
+nodeExporter: {enabled: false}
+defaultRules: {create: false}
+kubeControllerManager: {enabled: false}
+kubeScheduler: {enabled: false}
+kubeEtcd: {enabled: false}
+kubeProxy: {enabled: false}
+
+prometheus:
+  prometheusSpec:
+    enableRemoteWriteReceiver: true
+    scrapeInterval: 10s
+
+grafana:
+  adminPassword: pycon
+  grafana.ini:
+    auth.anonymous: {enabled: true, org_role: Viewer}
+    dashboards: {default_home_dashboard_path: /tmp/dashboards/shop.json}

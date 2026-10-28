@@ -1,0 +1,110 @@
+"""Shop API: product catalog and orders."""
+
+import io
+import logging
+import os
+import time
+from contextlib import asynccontextmanager
+
+import httpx
+import numpy as np
+import pandas as pd
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+
+PAYMENTS_URL = os.environ.get("PAYMENTS_URL", "http://payments/charge")
+CATALOG_URI = os.environ.get("CATALOG_URI")
+CATALOG_SIZE = int(os.environ.get("CATALOG_SIZE", "5000"))
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+CATEGORIES = ["libros", "electro", "hogar", "deporte", "juguetes"]
+
+logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger("shop")
+
+
+def generate_catalog() -> pd.DataFrame:
+    rng = np.random.default_rng(42)
+    return pd.DataFrame(
+        {
+            "id": np.arange(CATALOG_SIZE),
+            "category": rng.choice(CATEGORIES, CATALOG_SIZE),
+            "price": rng.integers(990, 99_990, CATALOG_SIZE),
+            "stock": rng.integers(0, 50, CATALOG_SIZE),
+            "rating": rng.uniform(1, 5, CATALOG_SIZE).round(1),
+        }
+    )
+
+
+def download_catalog(uri: str) -> pd.DataFrame:
+    """Reads gs://bucket/object with Application Default Credentials: no key handling in the code."""
+    from google.cloud import storage
+
+    bucket, _, name = uri.removeprefix("gs://").partition("/")
+    for attempt in range(5):
+        try:
+            data = storage.Client().bucket(bucket).blob(name).download_as_bytes()
+            return pd.read_csv(io.BytesIO(data))
+        except Exception:
+            if attempt == 4:
+                raise
+            log.warning("catalog download failed, retrying", exc_info=True)
+            time.sleep(2**attempt)
+
+
+catalog = download_catalog(CATALOG_URI) if CATALOG_URI else generate_catalog()
+products = catalog.to_dict("records")
+
+
+class Item(BaseModel):
+    product_id: int = Field(ge=0)
+    quantity: int = Field(ge=1, le=10)
+
+
+class Order(BaseModel):
+    customer_id: int
+    items: list[Item] = Field(min_length=1, max_length=20)
+
+
+def order_total(order: Order) -> int:
+    subtotal = 0
+    for item in order.items:
+        if item.product_id >= len(products):
+            raise HTTPException(404, f"product {item.product_id} not found")
+        subtotal += products[item.product_id]["price"] * item.quantity
+    bulk_discount = subtotal // 10 if subtotal > 100_000 else 0
+    return subtotal - bulk_discount
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with httpx.AsyncClient(timeout=5) as client:
+        app.state.payments = client
+        yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/health")
+async def health():
+    return {"ok": True}
+
+
+@app.get("/products")
+async def list_products(category: str | None = None, page: int = 1, size: int = 50):
+    in_stock = [p for p in products if p["stock"] > 0 and category in (None, p["category"])]
+    in_stock.sort(key=lambda p: (-p["rating"], p["price"]))
+    start = (page - 1) * size
+    return in_stock[start : start + size]
+
+
+@app.post("/orders")
+async def create_order(order: Order):
+    log.debug("order payload %s", order)
+    total = order_total(order)
+    response = await app.state.payments.post(
+        PAYMENTS_URL, json={"customer_id": order.customer_id, "amount": total}
+    )
+    response.raise_for_status()
+    log.info("order customer=%s total=%s", order.customer_id, total)
+    return {"total": total, "payment_id": response.json()["payment_id"]}
