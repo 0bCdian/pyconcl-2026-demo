@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d1846">
+<title>Misma app · PyCon Chile</title>
+<style>
+  :root {
+    --bg: #1d1846; --panel: #262058; --line: #3a3378; --text: #f5f3ff; --muted: #a9a3d9;
+    --cyan: #4dd0e1; --orange: #f9a825; --ok: #5ce1a6; --lost: #ff5c7a;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(120% 80% at 50% 0%, #2c2470 0%, var(--bg) 60%);
+    color: var(--text); font-family: var(--mono);
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation; overflow: hidden;
+  }
+  header { text-align: center; }
+  .event { color: var(--cyan); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { font-size: 18px; font-weight: 600; margin: 8px 0 0; line-height: 1.3; }
+  .buy {
+    width: min(64vw, 280px); aspect-ratio: 1; border-radius: 50%; border: 0; cursor: pointer;
+    background: radial-gradient(circle at 35% 30%, #8ff0fb, var(--cyan) 45%, #1f9bb0);
+    color: #102033; font: 700 22px/1 var(--mono); letter-spacing: .06em;
+    box-shadow: 0 0 0 10px rgba(77, 208, 225, .12), 0 18px 48px rgba(0, 0, 0, .45);
+    transition: transform .08s ease, box-shadow .2s ease;
+  }
+  .buy:active { transform: scale(.94); box-shadow: 0 0 0 16px rgba(77, 208, 225, .2), 0 10px 30px rgba(0, 0, 0, .5); }
+  .buy small { display: block; margin-top: 8px; font-size: 12px; font-weight: 500; letter-spacing: .02em; opacity: .75; }
+  .results { width: 100%; max-width: 360px; display: grid; gap: 10px; }
+  .side {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
+  }
+  .badge {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    background: var(--line); font-weight: 700;
+  }
+  .name { font-size: 12px; color: var(--muted); }
+  .last { font-size: 15px; font-variant-numeric: tabular-nums; }
+  .last.ok { color: var(--ok); } .last.lost { color: var(--lost); }
+  .tally { font-size: 13px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; line-height: 1.5; }
+  .tally b { color: var(--text); font-weight: 600; }
+  footer { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; max-width: 340px; min-height: 36px; }
+  footer.warn { color: var(--orange); }
+</style>
+</head>
+<body>
+<header>
+  <div class="event">PyCon Chile 2026</div>
+  <h1>Misma app,<br>dos resultados distintos</h1>
+</header>
+
+<button class="buy" id="buy" type="button">COMPRAR<small>toca muchas veces</small></button>
+
+<section class="results" id="results"></section>
+
+<footer id="note">Cada toque es una orden real, enviada igual a las dos versiones. Mira la pantalla.</footer>
+
+<script>
+  const SIDES = ["A", "B"];
+  const MAX_IN_FLIGHT = 4;
+  const note = document.getElementById("note");
+  const defaultNote = note.textContent;
+  const tally = Object.fromEntries(SIDES.map((s) => [s, { ok: 0, lost: 0 }]));
+  let inFlight = 0;
+  let noteTimer;
+
+  function randomId() {
+    return Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function deviceId() {
+    try {
+      let id = localStorage.getItem("device");
+      if (!id) { id = randomId(); localStorage.setItem("device", id); }
+      return id;
+    } catch { return randomId(); }
+  }
+  const device = deviceId();
+
+  document.getElementById("results").innerHTML = SIDES.map((s) => `
+    <div class="side">
+      <div class="badge">${s}</div>
+      <div><div class="name" id="name-${s}">versión ${s}</div><div class="last" id="last-${s}">—</div></div>
+      <div class="tally" id="tally-${s}"><b>0</b> ok<br><b>0</b> perdidas</div>
+    </div>`).join("");
+
+  function warn(text) {
+    note.textContent = text; note.classList.add("warn");
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(() => { note.textContent = defaultNote; note.classList.remove("warn"); }, 1500);
+  }
+
+  function show(side, result, label) {
+    const last = document.getElementById(`last-${side}`);
+    last.className = `last ${result.ok ? "ok" : "lost"}`;
+    last.textContent = result.ok ? `✓ ${result.ms} ms` : `✗ perdida (${result.ms} ms)`;
+    tally[side][result.ok ? "ok" : "lost"] += 1;
+    document.getElementById(`tally-${side}`).innerHTML =
+      `<b>${tally[side].ok}</b> ok<br><b>${tally[side].lost}</b> perdidas`;
+    document.getElementById(`name-${side}`).textContent = label ? `versión ${side} · ${label}` : `versión ${side}`;
+  }
+
+  async function buy() {
+    if (inFlight >= MAX_IN_FLIGHT) return;
+    inFlight += 1;
+    navigator.vibrate?.(8);
+    try {
+      const response = await fetch("tap", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ device }),
+      });
+      if (response.status === 429) { warn("Más despacio: hay mucha gente comprando."); return; }
+      if (!response.ok) { warn("La arena no respondió. Prueba de nuevo."); return; }
+      const { results, labels } = await response.json();
+      for (const side of SIDES) show(side, results[side], labels[side]);
+    } catch {
+      warn("Sin conexión. Prueba de nuevo.");
+    } finally {
+      inFlight -= 1;
+    }
+  }
+
+  document.getElementById("buy").addEventListener("pointerdown", (e) => { e.preventDefault(); buy(); });
+  document.getElementById("buy").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") buy(); });
+</script>
+</body>
+</html>
