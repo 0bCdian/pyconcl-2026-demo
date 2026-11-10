@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-05T12:30:00-03:00",
+  "title": "Design System: Misma app, dos resultados distintos",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Label Ink",
+        "canonical": "#111111",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(25% 0 0)",
+          "oklch(37% 0 0)",
+          "oklch(49% 0 0)",
+          "oklch(61% 0 0)",
+          "oklch(73% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "loss": {
+        "role": "secondary",
+        "displayName": "Loss Red",
+        "canonical": "#c8102e",
+        "tonalRamp": [
+          "oklch(15% 0.057 25)",
+          "oklch(25% 0.095 25)",
+          "oklch(37% 0.141 25)",
+          "oklch(49% 0.187 25)",
+          "oklch(61% 0.187 25)",
+          "oklch(73% 0.141 25)",
+          "oklch(85% 0.095 25)",
+          "oklch(95% 0.057 25)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Packaging White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(25% 0 0)",
+          "oklch(37% 0 0)",
+          "oklch(49% 0 0)",
+          "oklch(61% 0 0)",
+          "oklch(73% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Code Panel Grey",
+        "canonical": "#f1f1f1",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(25% 0 0)",
+          "oklch(37% 0 0)",
+          "oklch(49% 0 0)",
+          "oklch(61% 0 0)",
+          "oklch(73% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "ghost": {
+        "role": "neutral",
+        "displayName": "Withdrawn Grey",
+        "canonical": "#c9c9c9",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(25% 0 0)",
+          "oklch(37% 0 0)",
+          "oklch(49% 0 0)",
+          "oklch(61% 0 0)",
+          "oklch(73% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "ghost-ink": {
+        "role": "neutral",
+        "displayName": "Withdrawn Ink",
+        "canonical": "#767676",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(25% 0 0)",
+          "oklch(37% 0 0)",
+          "oklch(49% 0 0)",
+          "oklch(61% 0 0)",
+          "oklch(73% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Cover and close titles; demo slides scale it to 104px."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The single headline on each content slide."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Table captions, rule-list terms, step counters, ingredient headings."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Subtitle under a display title; consequence lines beside evidence."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, max 34em."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Table column heads and unit lines."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Measured values in tables and code, tabular mono."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "stamp",
+        "value": "transform 280ms cubic-bezier(.16, 1, .3, 1), opacity 120ms linear; from scale(1.45) rotate(-7deg)",
+        "purpose": "A seal pressing onto the package when its measurement is revealed."
+      },
+      {
+        "name": "reveal",
+        "value": "opacity 220ms ease-out",
+        "purpose": "Every other click reveal."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "canvas",
+        "value": "1280x720"
+      }
+    ],
+    "borders": [
+      {
+        "name": "heavy-bar",
+        "value": "12px solid #111111",
+        "purpose": "Opens a table, ingredient list or step list."
+      },
+      {
+        "name": "medium-rule",
+        "value": "4px or 6px solid #111111",
+        "purpose": "Closes a block; separates table head from body."
+      },
+      {
+        "name": "hairline",
+        "value": "1px solid #111111",
+        "purpose": "Between rows."
+      },
+      {
+        "name": "frame",
+        "value": "3px solid #111111",
+        "purpose": "Around the Tabla and the QR; 2px around code, 1.5px around source chips."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Seal",
+      "kind": "custom",
+      "refersTo": "seal",
+      "description": "ALTO EN octagon earned by version A when a stated threshold is measured.",
+      "html": "<div class=\"ds-seal\" role=\"img\" aria-label=\"Alto en memoria\"><svg viewBox=\"0 0 200 200\" aria-hidden=\"true\"><polygon class=\"body\" points=\"58.6,0 141.4,0 200,58.6 200,141.4 141.4,200 58.6,200 0,141.4 0,58.6\"/><polygon class=\"keyline\" points=\"61.9,8 138.1,8 192,61.9 192,138.1 138.1,192 61.9,192 8,138.1 8,61.9\"/></svg><div class=\"label\"><span class=\"alto\">ALTO EN</span><span class=\"word\">memoria</span><span class=\"foot\">medido en GKE</span></div></div>",
+      "css": ".ds-seal{position:relative;width:180px;height:180px;font-size:18px;display:inline-block;}.ds-seal svg{position:absolute;inset:0;width:100%;height:100%;}.ds-seal .body{fill:var(--ink,#111111);}.ds-seal .keyline{fill:none;stroke:var(--paper,#ffffff);stroke-width:3;}.ds-seal .label{position:absolute;inset:14% 10%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--paper,#ffffff);text-align:center;font-family:var(--display,'Archivo Variable','Arial Narrow',sans-serif);font-stretch:72%;line-height:.92;text-transform:uppercase;}.ds-seal .alto{font-size:1.5em;font-weight:800;letter-spacing:.02em;}.ds-seal .word{font-size:1.9em;font-weight:900;margin-top:.1em;white-space:nowrap;}.ds-seal .foot{font-size:max(.6em,10px);font-weight:600;letter-spacing:.08em;margin-top:.9em;opacity:.9;}.ds-seal{transition:transform 280ms cubic-bezier(.16,1,.3,1);}"
+    },
+    {
+      "name": "Seal, withdrawn",
+      "kind": "custom",
+      "refersTo": "seal-ghost",
+      "description": "A seal removed by a practice: dashed grey outline, struck word.",
+      "html": "<div class=\"ds-seal-ghost\" role=\"img\" aria-label=\"Alto en memoria\"><svg viewBox=\"0 0 200 200\" aria-hidden=\"true\"><polygon class=\"body\" points=\"58.6,0 141.4,0 200,58.6 200,141.4 141.4,200 58.6,200 0,141.4 0,58.6\"/><polygon class=\"keyline\" points=\"61.9,8 138.1,8 192,61.9 192,138.1 138.1,192 61.9,192 8,138.1 8,61.9\"/></svg><div class=\"label\"><span class=\"alto\">ALTO EN</span><span class=\"word\">memoria</span><span class=\"foot\">medido en GKE</span></div></div>",
+      "css": ".ds-seal-ghost{position:relative;width:180px;height:180px;font-size:18px;display:inline-block;}.ds-seal-ghost svg{position:absolute;inset:0;width:100%;height:100%;}.ds-seal-ghost .body{fill:var(--ink,#111111);}.ds-seal-ghost .keyline{fill:none;stroke:var(--paper,#ffffff);stroke-width:3;}.ds-seal-ghost .label{position:absolute;inset:14% 10%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--paper,#ffffff);text-align:center;font-family:var(--display,'Archivo Variable','Arial Narrow',sans-serif);font-stretch:72%;line-height:.92;text-transform:uppercase;}.ds-seal-ghost .alto{font-size:1.5em;font-weight:800;letter-spacing:.02em;}.ds-seal-ghost .word{font-size:1.9em;font-weight:900;margin-top:.1em;white-space:nowrap;}.ds-seal-ghost .foot{font-size:max(.6em,10px);font-weight:600;letter-spacing:.08em;margin-top:.9em;opacity:.9;}.ds-seal-ghost{transition:transform 280ms cubic-bezier(.16,1,.3,1);}.ds-seal-ghost .body{fill:var(--paper,#ffffff);stroke:var(--ghost,#c9c9c9);stroke-width:3;stroke-dasharray:7 6;}.ds-seal-ghost .keyline{stroke:none;}.ds-seal-ghost .label{color:var(--ghost-ink,#767676);}.ds-seal-ghost .word{text-decoration:line-through;text-decoration-thickness:3px;}"
+    },
+    {
+      "name": "Tabla (nutrition facts)",
+      "kind": "card",
+      "refersTo": "tabla",
+      "description": "A/B measurement table with nutrition-facts rules; loss values in reserved red.",
+      "html": "<figure class=\"ds-tabla\"><figcaption>Información de despliegue</figcaption><div class=\"unit\">Misma carga, mismos recursos</div><table><thead><tr><th></th><th>A</th><th>B</th></tr></thead><tbody><tr><th scope=\"row\">Memoria por pod</th><td>1.375 MiB</td><td>90 MiB</td></tr><tr><th scope=\"row\">Workers por pod</th><td>17</td><td>1</td></tr><tr><th scope=\"row\">Cobradas sin orden, por deploy</th><td class=\"loss\">24–30</td><td>0</td></tr></tbody></table><div class=\"origin\">GKE · 2 pods de 1 CPU y 2 GiB por versión</div></figure>",
+      "css": ".ds-tabla{width:410px;border:3px solid var(--ink,#111111);padding:14px 18px 12px;margin:0;background:var(--paper,#ffffff);color:var(--ink,#111111);font-family:var(--text,'Archivo Variable','Helvetica Neue',sans-serif);}.ds-tabla figcaption{font-family:var(--display,'Archivo Variable','Arial Narrow',sans-serif);font-stretch:75%;font-weight:900;font-size:34px;line-height:1;}.ds-tabla .unit{font-size:15px;font-weight:600;padding:6px 0 8px;border-bottom:12px solid var(--ink,#111111);}.ds-tabla table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}.ds-tabla thead th{font-size:15px;font-weight:800;text-align:right;padding:6px 0 4px;border-bottom:4px solid var(--ink,#111111);}.ds-tabla tbody th{text-align:left;font-weight:700;font-size:18px;padding:8px 12px 8px 0;}.ds-tabla td{text-align:right;font-family:var(--mono,'JetBrains Mono Variable',ui-monospace,monospace);font-size:18px;font-weight:600;padding:8px 0 8px 18px;white-space:nowrap;}.ds-tabla tbody tr{border-bottom:1px solid var(--ink,#111111);}.ds-tabla tbody tr:last-child{border-bottom:4px solid var(--ink,#111111);}.ds-tabla td.loss{color:var(--loss,#c8102e);}.ds-tabla .origin{font-size:15px;font-weight:600;padding-top:8px;}"
+    },
+    {
+      "name": "Source chip (Origen)",
+      "kind": "chip",
+      "refersTo": "origen",
+      "description": "Boxed source line in the slide footer for every on-screen number.",
+      "html": "<p class=\"ds-origen\">GKE · make stress · 1 corrida</p>",
+      "css": ".ds-origen{display:inline-block;margin:0;padding:3px 8px;border:1.5px solid var(--ink,#111111);font-family:var(--text,'Archivo Variable','Helvetica Neue',sans-serif);font-size:15px;font-weight:600;letter-spacing:.01em;color:var(--ink,#111111);white-space:nowrap;background:var(--paper,#ffffff);}"
+    },
+    {
+      "name": "QR barcode slot",
+      "kind": "custom",
+      "refersTo": "qr-slot",
+      "description": "QR in the package's barcode position, ink modules in a 3px outline with a condensed caption.",
+      "html": "<figure class=\"ds-qr\"><svg width=\"124\" height=\"124\" viewBox=\"0 0 7 7\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"QR\"><rect width=\"7\" height=\"7\" fill=\"#ffffff\"/><path d=\"M1 1h3v1H1zM1 2h1v2H1zM3 2h1v2H3zM1 4h3v1H1zM5 1h1v1H5zM5 3h1v3H5zM2 5h1v1H2z\" fill=\"#111111\"/></svg><figcaption><strong>Escanea y compra</strong><span>arena.example</span></figcaption></figure>",
+      "css": ".ds-qr{margin:0;display:inline-flex;flex-direction:column;gap:8px;}.ds-qr svg{display:block;outline:3px solid var(--ink,#111111);}.ds-qr figcaption{display:flex;flex-direction:column;gap:2px;color:var(--ink,#111111);}.ds-qr strong{font-family:var(--display,'Archivo Variable','Arial Narrow',sans-serif);font-stretch:75%;font-weight:900;font-size:24px;line-height:1;text-transform:uppercase;}.ds-qr span{font-family:var(--mono,'JetBrains Mono Variable',ui-monospace,monospace);font-size:13px;}"
+    },
+    {
+      "name": "Code panel",
+      "kind": "card",
+      "refersTo": "code-panel",
+      "description": "Code as an ingredient list: pale panel, 2px square ink frame, mono 18px.",
+      "html": "<pre class=\"ds-code\"><code>#!/bin/sh\nexec gunicorn -c gunicorn_conf.py app:app</code></pre>",
+      "css": ".ds-code{background:var(--panel,#f1f1f1);color:var(--ink,#111111);border:2px solid var(--ink,#111111);border-radius:0;padding:14px 18px;margin:0;font-family:var(--mono,'JetBrains Mono Variable',ui-monospace,monospace);font-size:18px;line-height:1.5;font-weight:500;}"
+    },
+    {
+      "name": "Rule list",
+      "kind": "custom",
+      "description": "Condensed caps terms beside definitions, 6px rules top and bottom, 1px between.",
+      "html": "<dl class=\"ds-reglas\"><div><dt>Mismo código</dt><dd>El mismo app.py en las dos imágenes.</dd></div><div><dt>Misma carga</dt><dd>k6 a tasa constante contra las dos.</dd></div></dl>",
+      "css": ".ds-reglas{margin:0;display:grid;width:100%;color:var(--ink,#111111);font-family:var(--text,'Archivo Variable','Helvetica Neue',sans-serif);}.ds-reglas>div{display:grid;grid-template-columns:300px 1fr;gap:24px;padding:14px 0;border-top:1px solid var(--ink,#111111);align-items:baseline;}.ds-reglas>div:first-child{border-top:6px solid var(--ink,#111111);}.ds-reglas>div:last-child{border-bottom:6px solid var(--ink,#111111);}.ds-reglas dt{font-family:var(--display,'Archivo Variable','Arial Narrow',sans-serif);font-stretch:75%;font-weight:900;font-size:34px;line-height:1;text-transform:uppercase;}.ds-reglas dd{margin:0;font-size:23px;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Package Front",
+    "overview": "**Creative North Star: \"The Package Front\"**\n\nEvery slide is the front of a supermarket package under Chile's food-labeling law. The bad deployment earns heavy black ALTO EN octagons, each one triggered by a threshold stated on screen; the good deployment earns none. The nutrition-facts table, with its thick and thin black rules and tabular figures, carries the measurements. The world is white packaging stock, black ink, and one red that appears only where an order was lost or charged without confirmation.\n\nDensity is that of a label: condensed, heavy headlines set close; a short body line; numbers set in mono and aligned. Everything is square-cornered and flat. Hierarchy comes from rule weight and type width, not from color, shadow or boxes. The deck refuses the dark, code-forward tech deck with a title top-left and bullets: code appears, but on a pale panel inside a printed frame, as one more ingredient list.\n\nOpen item: the arena screens (`arena/static/*.html`) still carry an older, unrelated look and are to be restyled into this world. Nothing in this document describes their current appearance.",
+    "keyCharacteristics": [
+      "Black octagonal seals with a thin white keyline and condensed white caps.",
+      "Nutrition-facts rules: 12px heavy bar, 4–6px medium rule, 1px hairline.",
+      "One reserved red, used only for lost or charged orders.",
+      "Archivo Variable on its condensed width axis for display; JetBrains Mono for code and measured values.",
+      "Every figure carries a boxed source chip.",
+      "Square corners everywhere; the octagon is the only non-rectangular silhouette."
+    ],
+    "rules": [
+      {
+        "name": "The Reserved Red Rule",
+        "body": "Loss Red marks orders that were lost or charged without confirmation. It is never a warning, emphasis, link, or brand color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Withdrawn Grey Rule",
+        "body": "Grey as a text or ink color means a seal has been removed. Ordinary de-emphasis is done with weight (a line drops to 500 from its 700), never with grey text.",
+        "section": "colors"
+      },
+      {
+        "name": "The Measured-In-Mono Rule",
+        "body": "A number that is a measurement is set in JetBrains Mono with tabular figures. Headline numbers and display figures may stay in condensed Archivo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Width-Is-Weight Rule",
+        "body": "Display hierarchy is made with the width axis and weight 900, not with size jumps alone: wider and lighter is text, narrower and heavier is the label's voice.",
+        "section": "typography"
+      },
+      {
+        "name": "The Printed-Flat Rule",
+        "body": "If it could not be printed in one pass of black ink on carton, it doesn't belong.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** give every on-screen measurement a source chip in the footer.",
+      "**Do** state the threshold that earns a seal on the same screen as the seal.",
+      "**Do** separate and group with the nutrition-facts rules (12px, 4–6px, 1px) instead of boxes, fills or space alone.",
+      "**Do** set measured values in mono with tabular figures, right-aligned in tables.",
+      "**Do** mark version A with octagons and version B with plain or open forms when both appear in one figure."
+    ],
+    "donts": [
+      "**Don't** use Loss Red for anything other than lost or charged orders.",
+      "**Don't** use grey text to de-emphasize; use weight 500.",
+      "**Don't** round corners or add shadows.",
+      "**Don't** use the octagon for anything but seals and version A's data.",
+      "**Don't** put kickers or eyebrow labels above headlines; small caps live inside seals and tables, never as a headline's preface.",
+      "**Don't** build the dark, code-forward tech deck: no dark slides, no bulleted lists; lists are ruled, and numbered when sequential."
+    ]
+  }
+}
