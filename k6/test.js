@@ -3,7 +3,9 @@ import http from 'k6/http';
 const RATE = Number(__ENV.RATE || 100);
 const DURATION = __ENV.DURATION || '30m';
 const RAMP_TO = Number(__ENV.RAMP_TO || 0);
+const ORDER_SHARE = Number(__ENV.ORDER_SHARE || 0.3);
 const CATALOG_SIZE = 5000;
+const CATEGORIES = ['libros', 'electro', 'hogar', 'deporte', 'juguetes'];
 
 const sameLoadFor = (target) => ({
   ...(RAMP_TO
@@ -30,8 +32,8 @@ const randomInt = (max) => Math.floor(Math.random() * max);
 
 export function shop() {
   const base = __ENV.TARGET;
-  if (Math.random() < 0.3) {
-    http.get(`${base}/products?category=hogar&page=${1 + randomInt(5)}`, {
+  if (Math.random() >= ORDER_SHARE) {
+    http.get(`${base}/products?category=${CATEGORIES[randomInt(CATEGORIES.length)]}&page=${1 + randomInt(5)}`, {
       timeout: '5s',
       tags: { name: 'GET /products' },
     });
