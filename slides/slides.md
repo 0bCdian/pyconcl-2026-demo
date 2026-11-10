@@ -98,7 +98,7 @@ async def create_order(order: Order):
   <div class="evidencia">
     <dl class="reglas">
       <div><dt>Mismo código</dt><dd>El mismo <code>app.py</code> en las dos imágenes.</dd></div>
-      <div><dt>Mismo manifiesto</dt><dd>Los dos Deployments solo difieren en el nombre y la imagen.</dd></div>
+      <div><dt>Mismo manifiesto</dt><dd>Los dos Deployments solo difieren en el nombre, la imagen y el nodo.</dd></div>
       <div><dt>Mismos recursos</dt><dd>2 pods de 1 CPU y 2 GiB, un nodo <code>e2-standard-8</code> por versión.</dd></div>
       <div><dt>Misma carga</dt><dd>k6 a tasa constante contra las dos al mismo tiempo.</dd></div>
     </dl>
@@ -123,7 +123,7 @@ async def create_order(order: Order):
 
 <!--
 (3:15) Que escaneen y compren. Esta sesión sigue abierta hasta el final; no se cierra entre eventos.
-Hacer: tener `make load RATE=200` corriendo de fondo y la pantalla de la arena (/screen) cargada. Seguir cuando los dos lienzos vayan parejos: en un día tranquilo, A y B son idénticas.
+Hacer: tener `make load RATE=200` corriendo de fondo y la pantalla de la arena (/screen) cargada. Seguir cuando los dos tableros vayan parejos: en un día tranquilo, A y B son idénticas.
 -->
 
 ---
@@ -192,8 +192,8 @@ Los hilos: numpy (OpenBLAS) también cuenta los 8 núcleos. En esta app no cambi
 </div>
 
 <!--
-(6:45, ~3 min) Hacer: en la terminal, `make load RATE=550` (la arena más k6 tienen que quedar bajo ~600 rps por versión).
-Decir: miren el lienzo de A llenarse de rojo y el de B no. Los paneles: A sirve ~300 rps y su CPU throttling llega al 100%; B sirve los 550.
+(6:45, ~3 min) Hacer: en la terminal, `make load RATE=550 DURATION=3m` (la arena más k6 tienen que quedar bajo ~600 rps por versión).
+Decir: miren los errores de A subir en el tablero y los de B no. Los paneles: A sirve ~300 rps y su CPU throttling llega al 100%; B sirve los 550.
 Prometheus mide cada 10 s: lo que ven va unos 15 s atrasado. Al terminar: `make load RATE=200` y seguir. Si el cluster no responde, se ven las capturas.
 -->
 

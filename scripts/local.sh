@@ -49,6 +49,6 @@ load)
     $K6 run --quiet /scripts/test.js
   ;;
 down)
-  podman rm -f arena lb-bad lb-good bad-1 bad-2 good-1 good-2 good-3 payments postgres >/dev/null 2>&1 || true
+  podman rm -f arena lb-bad lb-good bad-1 bad-2 good-1 good-2 payments postgres >/dev/null 2>&1 || true
   ;;
 esac
