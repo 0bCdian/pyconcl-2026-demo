@@ -3,72 +3,77 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1d1846">
-<title>Misma app · PyCon Chile</title>
+<meta name="theme-color" content="#ffffff">
+<title>Tienda · PyCon Chile</title>
 <style>
-  :root {
-    --bg: #1d1846; --panel: #262058; --line: #3a3378; --text: #f5f3ff; --muted: #a9a3d9;
-    --cyan: #4dd0e1; --orange: #f9a825; --ok: #5ce1a6; --lost: #ff5c7a;
-    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  }
+  @font-face { font-family: "Archivo Variable"; src: url("static/fonts/archivo-latin-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; }
+  @font-face { font-family: "JetBrains Mono Variable"; src: url("static/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
+  :root { --ink: #111111; --paper: #ffffff; --loss: #c8102e; --panel: #f1f1f1; }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; }
+  html, body { margin: 0; }
   body {
-    background: radial-gradient(120% 80% at 50% 0%, #2c2470 0%, var(--bg) 60%);
-    color: var(--text); font-family: var(--mono);
-    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-    padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
-    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation; overflow: hidden;
+    background: var(--paper); color: var(--ink); font: 450 16px/1.35 "Archivo Variable", "Helvetica Neue", sans-serif;
+    max-width: 480px; margin: 0 auto; min-height: 100dvh;
+    padding: max(14px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 14px;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
   }
-  header { text-align: center; }
-  .event { color: var(--cyan); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
-  h1 { font-size: 18px; font-weight: 600; margin: 8px 0 0; line-height: 1.3; }
+  h1 { margin: 0; font-size: 30px; font-weight: 900; line-height: .94; font-variation-settings: "wdth" 72; text-transform: uppercase; }
+  .mono { font-family: "JetBrains Mono Variable", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .product { border: 3px solid var(--ink); padding: 12px 16px 14px; }
+  .category { font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+  .name { margin: 2px 0 10px; font-size: 26px; font-weight: 900; line-height: 1; font-variation-settings: "wdth" 75; }
+  .facts { border-top: 12px solid var(--ink); display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; }
+  .price { font-size: 34px; font-weight: 700; }
+  .rating { font-size: 18px; font-weight: 600; }
   .buy {
-    width: min(64vw, 280px); aspect-ratio: 1; border-radius: 50%; border: 0; cursor: pointer;
-    background: radial-gradient(circle at 35% 30%, #8ff0fb, var(--cyan) 45%, #1f9bb0);
-    color: #102033; font: 700 22px/1 var(--mono); letter-spacing: .06em;
-    box-shadow: 0 0 0 10px rgba(77, 208, 225, .12), 0 18px 48px rgba(0, 0, 0, .45);
-    transition: transform .08s ease, box-shadow .2s ease;
+    width: 100%; min-height: 76px; border: 3px solid var(--ink); border-radius: 0; background: var(--ink); color: var(--paper);
+    font: 900 34px/1 "Archivo Variable", sans-serif; font-variation-settings: "wdth" 75; letter-spacing: .02em; cursor: pointer;
   }
-  .buy:active { transform: scale(.94); box-shadow: 0 0 0 16px rgba(77, 208, 225, .2), 0 10px 30px rgba(0, 0, 0, .5); }
-  .buy small { display: block; margin-top: 8px; font-size: 12px; font-weight: 500; letter-spacing: .02em; opacity: .75; }
-  .results { width: 100%; max-width: 360px; display: grid; gap: 10px; }
-  .side {
-    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
-  }
-  .badge {
-    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
-    background: var(--line); font-weight: 700;
-  }
-  .name { font-size: 12px; color: var(--muted); }
-  .last { font-size: 15px; font-variant-numeric: tabular-nums; }
-  .last.ok { color: var(--ok); } .last.lost { color: var(--lost); }
-  .tally { font-size: 13px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; line-height: 1.5; }
-  .tally b { color: var(--text); font-weight: 600; }
-  footer { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; max-width: 340px; min-height: 36px; }
-  footer.warn { color: var(--orange); }
+  .buy:active { background: var(--paper); color: var(--ink); }
+  .buy:disabled { background: var(--panel); color: var(--ink); cursor: wait; }
+  .buy:focus-visible, .receipt:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; }
+  .receipt { border-top: 12px solid var(--ink); border-bottom: 4px solid var(--ink); }
+  .receipt h2 { margin: 6px 0; font-size: 15px; font-weight: 800; text-transform: uppercase; }
+  .row { display: grid; grid-template-columns: 24px 1fr auto; gap: 8px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--ink); font-size: 15px; }
+  .row b { font-size: 20px; font-weight: 900; }
+  .row .detail { font-weight: 600; }
+  .row.lost { color: var(--loss); font-weight: 700; }
+  .tally { grid-column: 2 / 4; font-size: 13px; font-weight: 500; }
+  .tally .errors.some { color: var(--loss); font-weight: 700; }
+  #note { font-size: 14px; margin: 0; min-height: 38px; }
+  #note.warn { font-weight: 800; }
+  @media (max-height: 700px) { .name { font-size: 22px; } .price { font-size: 28px; } .buy { min-height: 64px; font-size: 30px; } .row { padding: 5px 0; } }
 </style>
 </head>
 <body>
-<header>
-  <div class="event">PyCon Chile 2026</div>
-  <h1>Misma app,<br>dos resultados distintos</h1>
-</header>
+<h1>Tienda PyCon</h1>
 
-<button class="buy" id="buy" type="button">COMPRAR<small>toca muchas veces</small></button>
+<section class="product" aria-live="polite">
+  <div class="category" id="category">cargando…</div>
+  <p class="name" id="name">Buscando productos</p>
+  <div class="facts"><span class="price mono" id="price">—</span><span class="rating mono" id="rating"></span></div>
+</section>
 
-<section class="results" id="results"></section>
+<button class="buy" id="buy" type="button" disabled>COMPRAR</button>
 
-<footer id="note">Cada toque es una orden real, enviada igual a las dos versiones. Mira la pantalla.</footer>
+<section class="receipt" aria-live="polite">
+  <h2>Tu última compra</h2>
+  <div id="rows"></div>
+</section>
+
+<p id="note">Cada compra es una orden real, enviada igual a las dos versiones. Mira la pantalla.</p>
 
 <script>
   const SIDES = ["A", "B"];
   const MAX_IN_FLIGHT = 4;
   const note = document.getElementById("note");
   const defaultNote = note.textContent;
+  const buyButton = document.getElementById("buy");
   const tally = Object.fromEntries(SIDES.map((s) => [s, { ok: 0, lost: 0 }]));
+  const pesos = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
+  let catalog = [];
+  let product = null;
   let inFlight = 0;
   let noteTimer;
 
@@ -85,12 +90,32 @@
   }
   const device = deviceId();
 
-  document.getElementById("results").innerHTML = SIDES.map((s) => `
-    <div class="side">
-      <div class="badge">${s}</div>
-      <div><div class="name" id="name-${s}">versión ${s}</div><div class="last" id="last-${s}">—</div></div>
-      <div class="tally" id="tally-${s}"><b>0</b> ok<br><b>0</b> perdidas</div>
-    </div>`).join("");
+  const rows = document.getElementById("rows");
+  rows.innerHTML = SIDES.map((s) => `
+    <div class="row" id="row-${s}"><b>${s}</b><span class="detail mono" id="detail-${s}">—</span><span class="mono" id="ms-${s}"></span>
+      <div class="tally mono" id="tally-${s}"></div></div>`).join("");
+  SIDES.forEach(showTally);
+
+  function showProduct() {
+    const category = product.category.charAt(0).toUpperCase() + product.category.slice(1);
+    document.getElementById("category").textContent = category;
+    document.getElementById("name").textContent = `${category} · producto ${product.id}`;
+    document.getElementById("price").textContent = pesos.format(product.price).replace(/\s/g, "");
+    document.getElementById("rating").textContent = `★ ${Number(product.rating).toLocaleString("es-CL", { minimumFractionDigits: 1 })}`;
+  }
+
+  function nextProduct() {
+    product = catalog[Math.floor(Math.random() * catalog.length)];
+    showProduct();
+  }
+
+  async function loadCatalog() {
+    try {
+      const response = await fetch("catalog");
+      if (response.ok) catalog = await response.json();
+    } catch {}
+    if (catalog.length) { nextProduct(); buyButton.disabled = false; } else setTimeout(loadCatalog, 2000);
+  }
 
   function warn(text) {
     note.textContent = text; note.classList.add("warn");
@@ -98,28 +123,35 @@
     noteTimer = setTimeout(() => { note.textContent = defaultNote; note.classList.remove("warn"); }, 1500);
   }
 
-  function show(side, result, label) {
-    const last = document.getElementById(`last-${side}`);
-    last.className = `last ${result.ok ? "ok" : "lost"}`;
-    last.textContent = result.ok ? `✓ ${result.ms} ms` : `✗ perdida (${result.ms} ms)`;
-    tally[side][result.ok ? "ok" : "lost"] += 1;
+  function showTally(side) {
+    const { ok, lost } = tally[side];
     document.getElementById(`tally-${side}`).innerHTML =
-      `<b>${tally[side].ok}</b> ok<br><b>${tally[side].lost}</b> perdidas`;
-    document.getElementById(`name-${side}`).textContent = label ? `versión ${side} · ${label}` : `versión ${side}`;
+      `<b>${ok}</b> confirmadas · <span class="errors ${lost ? "some" : ""}"><b>${lost}</b> con error</span>`;
+  }
+
+  function show(side, result) {
+    document.getElementById(`row-${side}`).className = `row ${result.ok ? "" : "lost"}`;
+    document.getElementById(`detail-${side}`).textContent = result.ok
+      ? `✓ orden ${String(result.order_id ?? "").slice(0, 6)}…` : "✗ sin respuesta";
+    document.getElementById(`ms-${side}`).textContent = `${result.ms} ms`;
+    tally[side][result.ok ? "ok" : "lost"] += 1;
+    showTally(side);
   }
 
   async function buy() {
-    if (inFlight >= MAX_IN_FLIGHT) return;
+    if (inFlight >= MAX_IN_FLIGHT || !product) return;
+    const product_id = product.id;
+    nextProduct();
     inFlight += 1;
     navigator.vibrate?.(8);
     try {
       const response = await fetch("tap", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ device }),
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ device, product_id }),
       });
       if (response.status === 429) { warn("Más despacio: hay mucha gente comprando."); return; }
-      if (!response.ok) { warn("La arena no respondió. Prueba de nuevo."); return; }
-      const { results, labels } = await response.json();
-      for (const side of SIDES) show(side, results[side], labels[side]);
+      if (!response.ok) { warn("La tienda no respondió. Prueba de nuevo."); return; }
+      const { results } = await response.json();
+      for (const side of SIDES) show(side, results[side]);
     } catch {
       warn("Sin conexión. Prueba de nuevo.");
     } finally {
@@ -127,8 +159,9 @@
     }
   }
 
-  document.getElementById("buy").addEventListener("pointerdown", (e) => { e.preventDefault(); buy(); });
-  document.getElementById("buy").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") buy(); });
+  buyButton.addEventListener("pointerdown", (e) => { e.preventDefault(); buy(); });
+  buyButton.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); buy(); } });
+  loadCatalog();
 </script>
 </body>
 </html>
