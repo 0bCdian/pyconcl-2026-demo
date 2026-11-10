@@ -1,4 +1,4 @@
-# Checklist para llevar tu app Python a producción
+# Checklist para desplegar Python en contenedores
 
 Lo que ningún linter ni test te va a avisar. Las marcadas con 📏 están medidas en `benchmarks/`.
 
@@ -23,7 +23,7 @@ La plataforma decide cuándo arrancas, cuándo recibes tráfico y cuándo mueres
 
 - [ ] Maneja `SIGTERM`: termina las requests en curso y sal antes del grace period de la plataforma. 📏
 - [ ] Readiness ("ya puedo atender") separado de liveness ("sigo vivo"). La liveness no consulta dependencias externas.
-- [ ] En Kubernetes, un `preStop` de unos segundos para que el balanceador deje de mandarte tráfico antes de apagarte.
+- [ ] En Kubernetes, un `preStop` más largo que lo que tarda la red en sacarte de rotación (en GKE, kube-proxy sincroniza cada 10 s como mínimo: 5 s no alcanzan), y un `terminationGracePeriodSeconds` que cubra `preStop` + tu apagado. 📏
 - [ ] Inicializa una sola vez y reutiliza: clientes HTTP, conexiones y modelos se crean al arrancar, no por request.
 - [ ] El disco del contenedor es efímero: estado fuera, configuración por variables de entorno.
 - [ ] Credenciales por defecto (ADC en Google Cloud, la cadena por defecto en AWS) y ninguna llave en el código ni en la imagen: la plataforma entrega la identidad.

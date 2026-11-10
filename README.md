@@ -1,6 +1,6 @@
-# Mismo código, distinto destino
+# Misma app, dos resultados distintos
 
-Demo de la charla en PyCon Chile 2026: buenas prácticas para llevar tu app Python a producción.
+Demo de la charla en PyCon Chile 2026: buenas prácticas para desplegar Python en contenedores.
 
 Una sola API FastAPI (`app/app.py`) se despliega de dos maneras: "como en el tutorial" (`deploy/bad/`) y bien hecha (`deploy/good/`). El código Python es el mismo; cambian solo el Dockerfile, cómo se arranca el proceso y el manifiesto de Kubernetes.
 
@@ -21,8 +21,8 @@ Medidos con `benchmarks/containers.sh` (Podman, cada contenedor limitado a 1 CPU
 
 | | `deploy/bad` | `deploy/good` |
 |---|---|---|
-| Imagen | 1,55 GB | 377 MB |
-| Arranque hasta el primer 200 | 6–9 s | ~0,9 s (1,6 s sin bytecode precompilado) |
+| Imagen | 1,44 GB | 377 MB |
+| Arranque hasta el primer 200 | 10–12 s | ~0,9 s (1,6 s sin bytecode precompilado) |
 | `os.cpu_count()` con 1 CPU de límite | 8, y gunicorn levanta 17 workers (3 con `PYTHON_CPU_COUNT=1`, sin tocar su configuración) | no se usa: 1 worker |
 | 60 s en reposo con 1 GiB | 70–80 procesos muertos por OOM | 0 |
 | 100 rps con 1 GiB | entre 28% y 81% de errores según la corrida (los OOM son aleatorios) | 0%, p95 ≈ 220 ms |
@@ -30,7 +30,58 @@ Medidos con `benchmarks/containers.sh` (Podman, cada contenedor limitado a 1 CPU
 | 100 y 300 rps con 2 GiB | 0%, p95 ≈ 216–219 ms | |
 | Apagado | 30 s y exit 137 (incluso con `CMD` en JSON, porque `start.sh` no hace `exec`) | 0,4 s y exit 0 |
 
-Con el doble de memoria la versión mala rinde igual: el costo de desplegar mal se paga en memoria, en arranques lentos y en deploys que cortan requests.
+Con el doble de memoria la versión mala rinde igual mientras sobre CPU: el costo de desplegar mal se paga en memoria, en arranques lentos, en deploys que cortan requests y en los picos.
+
+### Qué práctica pesa más
+
+En GKE, con el mismo manifiesto para las dos (2 pods de 1 CPU y 2 GiB, mismo readiness probe y `preStop`), aplicando a la imagen mala una sola práctica cada vez. Imagen y arranque, en Podman.
+
+| Práctica aplicada a la mala | Memoria por pod (200 rps) | Pico de 550 rps | Por deploy (~150 órdenes/s) | Además |
+|---|---|---|---|---|
+| ninguna | 1.375 MiB | ~300 ok/s, p95 > 5 s, 100% throttling | ~30 errores, 24–30 cobradas sin orden | imagen 1,44 GB, arranque 10–12 s, apagado 30 s |
+| 1 worker por contenedor | 107 MiB | 550 ok/s, p95 ≈ 255 ms | ~30 errores, pocas cobradas sin orden (4, una corrida) | arranque 0,7 s |
+| `PYTHON_CPU_COUNT=1` (3 workers) | 270 MiB | 550 ok/s, p95 ≈ 225 ms | 28 errores, pocas cobradas sin orden (3, una corrida) | |
+| `exec` en `start.sh` | 1.375 MiB | ~330 ok/s, p95 > 5 s | 2 errores, 0 cobradas | apagado 0,6 s |
+| imagen slim | igual (en reposo, Podman) | no medido | no medido | imagen 440 MB |
+| DEBUG en vez de INFO (al revés) | 1.382 MiB | ~200 ok/s | igual | +31% de CPU a 200 rps |
+| todas (`deploy/good`) | 90 MiB | 550 ok/s, p95 ≈ 240 ms | 0 errores, 0 cobradas | imagen 377 MB, arranque 0,9 s, apagado 0,4 s |
+
+Sobre ~650 rps la buena también cae, y queda peor que la mala: con el mismo readiness probe (timeout de 1 s), los de la buena fallan por la sobrecarga y Kubernetes saca sus pods del Service, mientras la mala sigue lista (`make stress`: ~170 contra ~250 rps servidos).
+
+### Cuántos procesos por pod
+
+Dentro del contenedor, `os.cpu_count()` y `os.process_cpu_count()` devuelven los 8 núcleos del nodo; el límite real está en `/sys/fs/cgroup/cpu.max` (`100000 100000` = 1 CPU). También los pools de la biblioteca estándar se dimensionan con los núcleos del nodo: `ThreadPoolExecutor` 12 hilos, `ProcessPoolExecutor` y `multiprocessing.Pool` 8 procesos (con `PYTHON_CPU_COUNT=1`: 5, 1 y 1).
+
+Mismo total de 2 CPUs por versión, rampa de 100 a 1.000 rps, una corrida por fila contra la buena en la misma corrida:
+
+| Distribución | Procesos | Memoria total | Rinde hasta (0 errores, p95 < 300 ms) | La buena, misma corrida |
+|---|---|---|---|---|
+| 2 pods × 1 CPU, 1 proceso (`deploy/good`) | 2 | 180–210 MiB | ~570–620 rps | |
+| 1 pod × 2 CPU, 1 worker por CPU de `cpu.max` | 2 | 191 MiB | ~430 rps | ~570 rps |
+| 2 pods × 1 CPU, `cpu.max` × 2 + 1 = 3 workers | 6 | 540 MiB | ~530 rps | ~620 rps |
+| 1 pod × 2 CPU, `cpu.max` × 2 + 1 = 5 workers | 5 | 434 MiB | ~520 rps | ~620 rps |
+| 1 pod × 2 CPU, 1 proceso | 1 | 110 MiB | ~300 rps, 0% de throttling: el GIL deja una CPU sin usar | ~570 rps |
+| 2 pods × 1 CPU, `cpu_count()` × 2 + 1 = 17 workers (`deploy/bad`, en `make stress`) | 34 | 2.750 MiB | ~420 rps | ~560 rps |
+
+Pasado ese punto todas colapsan; las de un solo proceso por pod caen más (a ~90–175 ok/s) porque su único event loop no alcanza a responder el readiness probe y Kubernetes las saca del Service, mientras que con varios workers alguno responde (~250–410 ok/s). Eso habla del probe con el pod saturado, no de más capacidad: la respuesta es escalar antes de llegar ahí.
+
+Si un pod necesita varios workers, que los cuente desde la cuota y no desde el nodo, y que sin límite de CPU no adivine:
+
+```python
+def container_cpus() -> int:
+    """Whole CPUs granted by the cgroup v2 quota; 1 when the container has no CPU limit."""
+    try:
+        quota, period = Path("/sys/fs/cgroup/cpu.max").read_text().split()
+    except (OSError, ValueError):
+        return 1
+    if quota == "max":
+        return 1
+    return max(1, math.ceil(int(quota) / int(period)))
+
+workers = int(os.environ.get("WEB_CONCURRENCY", container_cpus()))
+```
+
+OpenBLAS (numpy) también arranca un hilo por núcleo del nodo en cada proceso: la mala corre 144 hilos con 1 CPU y la buena 12. A 550 rps, la mala tiene frenados el 100% de sus periodos de CPU y la buena entre el 4% y el 9%. `OPENBLAS_NUM_THREADS=1` los baja a 25, pero en esta app no cambia ni la memoria ni el pico de 550 rps, porque casi no usa álgebra lineal.
 
 Lecciones que sí requieren cambiar el código, medidas con `benchmarks/code/run.sh` (1 worker de uvicorn):
 
@@ -61,13 +112,14 @@ make init
 make plan SPOT=true    # revisa el plan
 make up SPOT=true      # tofu apply (pide confirmación) + imágenes en Cloud Build + Prometheus/Grafana + apps
 make grafana           # http://localhost:3000 (admin / pycon)
+make proxy             # kubectl proxy: Grafana, Prometheus y la arena en localhost:8001 (los paneles en vivo del deck usan esta URL)
 make load RATE=100     # k6 dentro del cluster: misma tasa para bad y good durante 30 min
 make rollout           # deploy de ambos en medio de la carga
 make startup           # segundos desde que se crea un pod hasta su primer 200
 make down              # tofu apply con stage=off: borra el cluster y los nodos
 ```
 
-Tres nodos: un `e2-standard-8` por versión y un `e2-standard-4` para k6, el monitoreo y el mock de pagos. Estimamos alrededor de 1 USD por hora (sin verificar los precios de la región); con `SPOT=true`, bastante menos. `MEMORY=2Gi` iguala el rendimiento de la versión mala. Con `stage=off` quedan solo la red, el registry, los buckets y las service accounts, sin costo relevante.
+Tres nodos: un `e2-standard-8` por versión y un `e2-standard-4` para k6, el monitoreo y el mock de pagos. Estimamos alrededor de 1 USD por hora (sin verificar los precios de la región); con `SPOT=true`, bastante menos. Las dos versiones tienen los mismos recursos por pod: 1 CPU y `MEMORY` (2 GiB por defecto; con `MEMORY=1Gi` la mala no arranca). Con `stage=off` quedan solo la red, el registry, los buckets y las service accounts, sin costo relevante.
 
 ## Correr los benchmarks en tu máquina
 
