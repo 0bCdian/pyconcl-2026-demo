@@ -40,6 +40,7 @@ Tu proceso no sabe cuántos recursos tiene: díselo tú, y mídelo.
 - [ ] `async def` solo si toda la cadena es async. Si llamas a un SDK síncrono, usa `def` o `asyncio.to_thread`. 📏
 - [ ] Los endpoints `def` comparten un threadpool de 40 hilos por proceso (AnyIO); súbelo o usa async si tienes mucha concurrencia de I/O. 📏
 - [ ] Un cliente HTTP por proceso, creado en el `lifespan`.
+- [ ] Cada proceso abre su propio pool de conexiones: `workers × pods × tamaño del pool` tiene que caber en el `max_connections` de la base (asyncpg: 10 por defecto, 17 workers abren 170).
 - [ ] Antes de producción, test de carga con tasa constante, no solo con usuarios concurrentes.
 
 ## 4. Lo que se logea

@@ -2,20 +2,27 @@
 
 Demo de la charla en PyCon Chile 2026: buenas prácticas para desplegar Python en contenedores.
 
-Una sola API FastAPI (`app/app.py`) se despliega de dos maneras: "como en el tutorial" (`deploy/bad/`) y bien hecha (`deploy/good/`). El código Python es el mismo; cambian solo el Dockerfile, cómo se arranca el proceso y el manifiesto de Kubernetes.
+Una sola API FastAPI (`app/app.py`) se despliega de dos maneras: "como en el tutorial" (`deploy/bad/`) y bien hecha (`deploy/good/`). El código Python es el mismo; cambian solo el Dockerfile y cómo se arranca el proceso. El manifiesto de Kubernetes (`k8s/demo.yaml`) es el mismo para las dos: difieren únicamente en el nombre, la imagen, el node pool y la service account.
 
 ```
-app/          el código: una tienda con catálogo (pandas, leído de GCS en GKE) y órdenes que llaman a un servicio de pagos
+app/          el código: una tienda con catálogo (pandas, leído de GCS en GKE) y órdenes que cobran en el servicio de pagos y se guardan en PostgreSQL
 deploy/bad/   python:3.13 completo, pip, CMD en forma shell, start.sh sin exec, workers = cpu_count()*2+1
 deploy/good/  slim multi-stage, uv con bytecode precompilado, UID 1000, CMD en forma exec, 1 worker
-payments/     mock de la pasarela de pagos (latencia configurable)
-k8s/          las dos versiones en nodos idénticos, k6, Prometheus y Grafana
+payments/     mock de la pasarela de pagos (latencia configurable): registra cada cobro y expone `GET /reconciliation`
+db/           schema.sql: las tablas `orders` (la tienda) y `charges` (pagos)
+arena/        la arena del público: los celulares compran en una tienda y el proyector muestra un tablero por versión
+slides/       el deck de la charla (Slidev)
+scripts/      `local.sh` (`make local`) y `startup.sh` (`make startup`)
+k6/           la carga: 30% órdenes y 70% lecturas del catálogo (`ORDER_SHARE`)
+k8s/          las dos versiones en nodos idénticos, PostgreSQL, pagos, la arena, k6, Prometheus y Grafana
 infra/        OpenTofu: red, GKE, Artifact Registry, el bucket del catálogo y Workload Identity
 infra/bootstrap/  para empezar desde cero: proyecto, facturación, APIs, bucket de estado y presupuesto
-benchmarks/   los scripts que reproducen cada número de la charla
+benchmarks/   los scripts que reproducen cada número de la charla (ver "Reproducir cada número")
 ```
 
 ## Resultados
+
+> **Re-medición pendiente.** Las cifras de "Resultados", "Qué práctica pesa más" y "Cuántos procesos por pod" se midieron antes de agregar PostgreSQL y con la mezcla de carga anterior (70% órdenes). Hoy k6 envía 30% órdenes y 70% lecturas del catálogo, y cada orden además escribe en la base. Se volverán a medir; hasta entonces ninguna cifra cambió.
 
 Medidos con `benchmarks/containers.sh` (Podman, cada contenedor limitado a 1 CPU, en un host de 8 núcleos):
 
@@ -35,6 +42,8 @@ Con el doble de memoria la versión mala rinde igual mientras sobre CPU: el cost
 ### Qué práctica pesa más
 
 En GKE, con el mismo manifiesto para las dos (2 pods de 1 CPU y 2 GiB, mismo readiness probe y `preStop`), aplicando a la imagen mala una sola práctica cada vez. Imagen y arranque, en Podman.
+
+"Cobradas sin orden" son los cobros del servicio de pagos que no tienen una orden. Los valores de esta tabla se obtuvieron contando los cobros en el log de pagos y restando las órdenes confirmadas. Ahora se obtienen con una consulta SQL que cruza `charges` y `orders` (`GET /reconciliation` de pagos, ignora los cobros de los últimos 10 s), que ejecuta `benchmarks/gke/charges.sh`.
 
 | Práctica aplicada a la mala | Memoria por pod (200 rps) | Pico de 550 rps | Por deploy (~150 órdenes/s) | Además |
 |---|---|---|---|---|
@@ -83,6 +92,8 @@ workers = int(os.environ.get("WEB_CONCURRENCY", container_cpus()))
 
 OpenBLAS (numpy) también arranca un hilo por núcleo del nodo en cada proceso: la mala corre 144 hilos con 1 CPU y la buena 12. A 550 rps, la mala tiene frenados el 100% de sus periodos de CPU y la buena entre el 4% y el 9%. `OPENBLAS_NUM_THREADS=1` los baja a 25, pero en esta app no cambia ni la memoria ni el pico de 550 rps, porque casi no usa álgebra lineal.
 
+Cada proceso abre además su propio pool de asyncpg, con el valor por defecto de la biblioteca (10 conexiones). Medido a mano con `pg_stat_activity` en Podman, con un contenedor por versión: 170 conexiones la mala (17 workers × 10) y 10 la buena. El manifiesto fija `max_connections=1000` en PostgreSQL (el valor por defecto de PostgreSQL es 100). No se midió qué pasa con el valor por defecto.
+
 Lecciones que sí requieren cambiar el código, medidas con `benchmarks/code/run.sh` (1 worker de uvicorn):
 
 | | Resultado |
@@ -95,7 +106,28 @@ Lecciones que sí requieren cambiar el código, medidas con `benchmarks/code/run
 | `log.debug(f"... {json.dumps(catalogo)}")` con DEBUG desactivado | 463 contra 934 rps sin logs (−50%), sin escribir un solo byte |
 | `log.info` con el payload completo | −3% de throughput, pero 30 MB de log en 15 s |
 
+Estos casos usan apps pequeñas propias (`benchmarks/code/`), sus propios scripts de k6 y un servicio lento de ~150 ms (`slow_service.py`): no usan PostgreSQL ni la mezcla de carga de `k6/test.js`, así que el cambio de la base no los afecta.
+
 Los números cambian según la máquina; lo que se mantiene es la diferencia entre ambas versiones.
+
+## Reproducir cada número
+
+Comandos desde la raíz del repo. Los de GKE necesitan el cluster arriba (`make up`) y las imágenes de las variantes (`benchmarks/gke/build.sh`).
+
+| Número | Comando |
+|---|---|
+| "Qué práctica pesa más", filas 1 worker, `PYTHON_CPU_COUNT=1`, `exec` y DEBUG | `benchmarks/gke/build.sh && benchmarks/gke/ablation.sh` |
+| Misma tabla, filas "ninguna" y "todas": memoria por pod | `make load RATE=200 DURATION=90s`, luego `benchmarks/gke/resources.sh` |
+| Misma tabla, pico de 550 rps | `make load RATE=550 DURATION=3m`, luego `benchmarks/gke/watch.sh 7` |
+| Misma tabla, columna "Por deploy" | `benchmarks/gke/charges.sh rollout` |
+| Imagen, arranque y apagado por variante (Podman) | `benchmarks/gke/local-ablation.sh` |
+| Punto de quiebre sobre ~650 rps | `make stress`, luego `benchmarks/gke/watch.sh` |
+| "Cuántos procesos por pod" | `benchmarks/gke/build.sh && benchmarks/gke/parallel.sh` |
+| Tamaños de los pools de la biblioteca estándar | `benchmarks/gke/pools.sh` |
+| Tabla "Resultados" (Podman) | `benchmarks/containers.sh` |
+| Tabla de lecciones de código | `benchmarks/code/run.sh` |
+
+Sin script propio: el "+31% de CPU con DEBUG" se calcula a mano comparando dos salidas de `ablation.sh`/`resources.sh` (con DEBUG y con INFO); y las 170 conexiones a PostgreSQL se contaron a mano con `pg_stat_activity`.
 
 ## Credenciales
 
@@ -113,18 +145,30 @@ make plan SPOT=true    # revisa el plan
 make up SPOT=true      # tofu apply (pide confirmación) + imágenes en Cloud Build + Prometheus/Grafana + apps
 make grafana           # http://localhost:3000 (admin / pycon)
 make proxy             # kubectl proxy: Grafana, Prometheus y la arena en localhost:8001 (los paneles en vivo del deck usan esta URL)
-make load RATE=100     # k6 dentro del cluster: misma tasa para bad y good durante 30 min
+make load RATE=100     # k6 dentro del cluster: misma tasa y misma mezcla (30% órdenes) para bad y good durante 30 min
 make rollout           # deploy de ambos en medio de la carga
 make startup           # segundos desde que se crea un pod hasta su primer 200
 make down              # tofu apply con stage=off: borra el cluster y los nodos
 ```
 
-Tres nodos: un `e2-standard-8` por versión y un `e2-standard-4` para k6, el monitoreo y el mock de pagos. Estimamos alrededor de 1 USD por hora (sin verificar los precios de la región); con `SPOT=true`, bastante menos. Las dos versiones tienen los mismos recursos por pod: 1 CPU y `MEMORY` (2 GiB por defecto; con `MEMORY=1Gi` la mala no arranca). Con `stage=off` quedan solo la red, el registry, los buckets y las service accounts, sin costo relevante.
+`make deploy` (lo ejecuta `make up`) crea también el ConfigMap `db-schema` con `db/schema.sql`, que PostgreSQL carga al iniciar. Tres nodos: un `e2-standard-8` por versión y un `e2-standard-4` para k6, el monitoreo, el mock de pagos y PostgreSQL. Estimamos alrededor de 1 USD por hora (sin verificar los precios de la región); con `SPOT=true`, bastante menos. Las dos versiones tienen los mismos recursos por pod: 1 CPU y `MEMORY` (2 GiB por defecto; con `MEMORY=1Gi` la mala no arranca). Con `stage=off` quedan solo la red, el registry, los buckets y las service accounts, sin costo relevante.
+
+## Correrlo en tu máquina
+
+```bash
+make local        # Podman: PostgreSQL, pagos, 2 réplicas por versión con el mismo entorno, un balanceador por versión y la arena
+make local-load   # k6 contra las dos versiones (RATE y DURATION)
+make local-down
+```
+
+`make local` imprime la URL de la pantalla del proyector (con token) y la de los celulares. No tiene readiness ni grace periods como Kubernetes: las diferencias de deploy solo se ven en GKE.
+
+La arena (`arena/`) manda cada toque como la misma orden a las dos versiones. En el celular se ven productos reales de `/products`, un botón COMPRAR y un recibo por versión. En el proyector (`/screen`) hay un tablero por versión con órdenes confirmadas, errores y cobradas sin orden, que sale de `GET /reconciliation`.
 
 ## Correr los benchmarks en tu máquina
 
 ```bash
-./benchmarks/containers.sh   # Podman (o CONTAINER=docker) + k6; unos 15 minutos
+./benchmarks/containers.sh   # Podman (o CONTAINER=docker) + k6, con PostgreSQL; unos 15 minutos
 ./benchmarks/code/run.sh     # uv + k6; unos 6 minutos
 make lint                    # hadolint sobre los dos Dockerfiles
 ```
