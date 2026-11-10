@@ -38,6 +38,8 @@ monitoring:
 		| kubectl label --local -f - grafana_dashboard=1 -o yaml | kubectl apply -f -
 
 deploy:
+	kubectl create namespace demo --dry-run=client -o yaml | kubectl apply -f -
+	kubectl -n demo create configmap db-schema --from-file=schema.sql=db/schema.sql --dry-run=client -o yaml | kubectl apply -f -
 	sed -e "s|REPO|$(call out,registry)|g" -e 's|MEMORY_LIMIT|$(MEMORY)|g' -e "s|CATALOG_URI_VALUE|$(call out,catalog_uri)|g" \
 		k8s/demo.yaml | kubectl apply -f -
 

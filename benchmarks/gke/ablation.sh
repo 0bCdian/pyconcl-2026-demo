@@ -7,8 +7,6 @@ settle() {
   for d in bad good; do kubectl -n demo rollout status deploy/$d --timeout=300s >/dev/null; done
   until [ "$(kubectl -n demo get pods -l 'app in (bad,good)' --no-headers | wc -l)" -eq 4 ]; do sleep 2; done
 }
-kubectl -n demo patch deploy payments --type=json -p '[{"op":"add","path":"/spec/template/spec/containers/0/args","value":["uvicorn","app:app","--host","0.0.0.0","--port","8000","--workers","4"]}]' >/dev/null 2>&1
-kubectl -n demo rollout status deploy/payments --timeout=120s >/dev/null
 
 variants=${*:-workers1 cpucount1 exec debug}
 for variant in $variants; do
@@ -41,4 +39,3 @@ for variant in $variants; do
   esac
   make deploy >/dev/null; settle
 done
-kubectl -n demo patch deploy payments --type=json -p '[{"op":"remove","path":"/spec/template/spec/containers/0/args"}]' >/dev/null

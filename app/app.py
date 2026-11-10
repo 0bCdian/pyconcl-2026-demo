@@ -6,8 +6,10 @@ import logging
 import os
 import sys
 import time
+import uuid
 from contextlib import asynccontextmanager
 
+import asyncpg
 import httpx
 import numpy as np
 import pandas as pd
@@ -15,6 +17,8 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
 PAYMENTS_URL = os.environ.get("PAYMENTS_URL", "http://payments/charge")
+DATABASE_URL = os.environ["DATABASE_URL"]
+SHOP_NAME = os.environ["SHOP_NAME"]
 CATALOG_URI = os.environ.get("CATALOG_URI")
 CATALOG_SIZE = int(os.environ.get("CATALOG_SIZE", "5000"))
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
@@ -92,8 +96,9 @@ def order_total(order: Order) -> int:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with httpx.AsyncClient(timeout=5) as client:
+    async with httpx.AsyncClient(timeout=5) as client, asyncpg.create_pool(DATABASE_URL) as pool:
         app.state.payments = client
+        app.state.db = pool
         yield
 
 
@@ -119,9 +124,16 @@ async def list_products(
 async def create_order(order: Order):
     log.debug("order payload %s", order)
     total = order_total(order)
+    order_id = uuid.uuid4()
     response = await app.state.payments.post(
-        PAYMENTS_URL, json={"customer_id": order.customer_id, "amount": total}
+        PAYMENTS_URL,
+        json={"order_id": str(order_id), "shop": SHOP_NAME, "customer_id": order.customer_id, "amount": total},
     )
     response.raise_for_status()
+    payment_id = response.json()["payment_id"]
+    await app.state.db.execute(
+        "insert into orders (order_id, shop, customer_id, total, payment_id) values ($1, $2, $3, $4, $5)",
+        order_id, SHOP_NAME, order.customer_id, total, payment_id,
+    )
     log.info("order customer=%s total=%s", order.customer_id, total)
-    return {"total": total, "payment_id": response.json()["payment_id"]}
+    return {"order_id": str(order_id), "total": total, "payment_id": payment_id}

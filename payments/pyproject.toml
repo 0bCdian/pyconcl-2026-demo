@@ -2,4 +2,8 @@
 name = "payments"
 version = "1.0.0"
 requires-python = ">=3.13"
-dependencies = ["fastapi==0.162.0", "uvicorn[standard]==0.54.0"]
+dependencies = [
+    "asyncpg==0.32.0",
+    "fastapi==0.162.0",
+    "uvicorn[standard]==0.54.0",
+]
