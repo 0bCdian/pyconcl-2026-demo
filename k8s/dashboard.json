@@ -17,7 +17,8 @@
         "w": 24,
         "h": 1
       },
-      "collapsed": false
+      "collapsed": false,
+      "id": 1
     },
     {
       "type": "stat",
@@ -91,7 +92,8 @@
         },
         "textMode": "value_and_name",
         "colorMode": "background"
-      }
+      },
+      "id": 2
     },
     {
       "type": "stat",
@@ -165,7 +167,8 @@
         },
         "textMode": "value_and_name",
         "colorMode": "background"
-      }
+      },
+      "id": 3
     },
     {
       "type": "stat",
@@ -239,7 +242,8 @@
         },
         "textMode": "value_and_name",
         "colorMode": "background"
-      }
+      },
+      "id": 4
     },
     {
       "type": "row",
@@ -250,7 +254,8 @@
         "w": 24,
         "h": 1
       },
-      "collapsed": false
+      "collapsed": false,
+      "id": 5
     },
     {
       "type": "timeseries",
@@ -315,7 +320,8 @@
             ]
           }
         ]
-      }
+      },
+      "id": 6
     },
     {
       "type": "timeseries",
@@ -380,7 +386,8 @@
             ]
           }
         ]
-      }
+      },
+      "id": 7
     },
     {
       "type": "timeseries",
@@ -445,7 +452,8 @@
             ]
           }
         ]
-      }
+      },
+      "id": 8
     },
     {
       "type": "row",
@@ -456,7 +464,8 @@
         "w": 24,
         "h": 1
       },
-      "collapsed": false
+      "collapsed": false,
+      "id": 9
     },
     {
       "type": "timeseries",
@@ -521,7 +530,8 @@
             ]
           }
         ]
-      }
+      },
+      "id": 10
     },
     {
       "type": "timeseries",
@@ -586,7 +596,8 @@
             ]
           }
         ]
-      }
+      },
+      "id": 11
     },
     {
       "type": "timeseries",
@@ -651,7 +662,8 @@
             ]
           }
         ]
-      }
+      },
+      "id": 12
     },
     {
       "type": "timeseries",
@@ -716,7 +728,8 @@
             ]
           }
         ]
-      }
+      },
+      "id": 13
     },
     {
       "type": "timeseries",
@@ -781,7 +794,8 @@
             ]
           }
         ]
-      }
+      },
+      "id": 14
     },
     {
       "type": "timeseries",
@@ -846,7 +860,8 @@
             ]
           }
         ]
-      }
+      },
+      "id": 15
     }
   ]
 }

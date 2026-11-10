@@ -15,6 +15,7 @@ spec:
           env:
             - {name: RATE, value: "RATE_VALUE"}
             - {name: DURATION, value: "DURATION_VALUE"}
+            - {name: RAMP_TO, value: "RAMP_TO_VALUE"}
             - {name: K6_PROMETHEUS_RW_SERVER_URL, value: http://prometheus-operated.monitoring:9090/api/v1/write}
             - {name: K6_PROMETHEUS_RW_TREND_STATS, value: "avg,p(95),p(99)"}
           resources:

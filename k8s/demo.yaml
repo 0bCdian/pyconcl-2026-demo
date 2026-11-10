@@ -59,16 +59,23 @@ spec:
       serviceAccountName: bad
       nodeSelector: {cloud.google.com/gke-nodepool: bad}
       tolerations: [{key: side, value: bad, effect: NoSchedule}]
+      terminationGracePeriodSeconds: 40
       containers:
         - name: bad
           image: REPO/bad:latest
           env:
             - {name: PAYMENTS_URL, value: http://payments/charge}
             - {name: CATALOG_URI, value: CATALOG_URI_VALUE}
-            - {name: LOG_LEVEL, value: DEBUG}
+            - {name: LOG_LEVEL, value: INFO}
           resources:
             requests: {cpu: "1", memory: MEMORY_LIMIT}
             limits: {cpu: "1", memory: MEMORY_LIMIT}
+          readinessProbe:
+            httpGet: {path: /health, port: 8000}
+            periodSeconds: 2
+          lifecycle:
+            preStop:
+              sleep: {seconds: 15}
 ---
 apiVersion: v1
 kind: Service
@@ -103,7 +110,7 @@ spec:
       serviceAccountName: good
       nodeSelector: {cloud.google.com/gke-nodepool: good}
       tolerations: [{key: side, value: good, effect: NoSchedule}]
-      securityContext: {runAsNonRoot: true}
+      terminationGracePeriodSeconds: 40
       containers:
         - name: good
           image: REPO/good:latest
@@ -111,9 +118,6 @@ spec:
             - {name: PAYMENTS_URL, value: http://payments/charge}
             - {name: CATALOG_URI, value: CATALOG_URI_VALUE}
             - {name: LOG_LEVEL, value: INFO}
-            - name: PYTHON_CPU_COUNT
-              valueFrom:
-                resourceFieldRef: {resource: limits.cpu, divisor: "1"}
           resources:
             requests: {cpu: "1", memory: MEMORY_LIMIT}
             limits: {cpu: "1", memory: MEMORY_LIMIT}
@@ -122,7 +126,7 @@ spec:
             periodSeconds: 2
           lifecycle:
             preStop:
-              sleep: {seconds: 5}
+              sleep: {seconds: 15}
 ---
 apiVersion: v1
 kind: Service
@@ -131,4 +135,34 @@ metadata:
   namespace: demo
 spec:
   selector: {app: good}
+  ports: [{port: 80, targetPort: 8000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arena
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: arena}
+  template:
+    metadata:
+      labels: {app: arena}
+    spec:
+      containers:
+        - name: arena
+          image: REPO/arena:latest
+          resources:
+            requests: {cpu: 500m, memory: 256Mi}
+          readinessProbe:
+            httpGet: {path: /health, port: 8000}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: arena
+  namespace: demo
+spec:
+  selector: {app: arena}
   ports: [{port: 80, targetPort: 8000}]

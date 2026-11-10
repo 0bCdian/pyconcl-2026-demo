@@ -1,15 +1,17 @@
 """Shop API: product catalog and orders."""
 
 import io
+import json
 import logging
 import os
+import sys
 import time
 from contextlib import asynccontextmanager
 
 import httpx
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
 PAYMENTS_URL = os.environ.get("PAYMENTS_URL", "http://payments/charge")
@@ -18,7 +20,20 @@ CATALOG_SIZE = int(os.environ.get("CATALOG_SIZE", "5000"))
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 CATEGORIES = ["libros", "electro", "hogar", "deporte", "juguetes"]
 
-logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(message)s")
+
+class JsonFormatter(logging.Formatter):
+    """One JSON object per line, with the `severity` field Cloud Logging and most log collectors read."""
+
+    def format(self, record):
+        entry = {"severity": record.levelname, "logger": record.name, "message": record.getMessage()}
+        if record.exc_info:
+            entry["exception"] = self.formatException(record.exc_info)
+        return json.dumps(entry)
+
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JsonFormatter())
+logging.basicConfig(level=LOG_LEVEL, handlers=[handler])
 log = logging.getLogger("shop")
 
 
@@ -91,7 +106,9 @@ async def health():
 
 
 @app.get("/products")
-async def list_products(category: str | None = None, page: int = 1, size: int = 50):
+async def list_products(
+    category: str | None = None, page: int = Query(1, ge=1), size: int = Query(50, ge=1, le=100)
+):
     in_stock = [p for p in products if p["stock"] > 0 and category in (None, p["category"])]
     in_stock.sort(key=lambda p: (-p["rating"], p["price"]))
     start = (page - 1) * size

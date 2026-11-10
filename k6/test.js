@@ -2,13 +2,14 @@ import http from 'k6/http';
 
 const RATE = Number(__ENV.RATE || 100);
 const DURATION = __ENV.DURATION || '30m';
+const RAMP_TO = Number(__ENV.RAMP_TO || 0);
 const CATALOG_SIZE = 5000;
 
 const sameLoadFor = (target) => ({
-  executor: 'constant-arrival-rate',
-  rate: RATE,
+  ...(RAMP_TO
+    ? { executor: 'ramping-arrival-rate', startRate: RATE, stages: [{ target: RAMP_TO, duration: DURATION }] }
+    : { executor: 'constant-arrival-rate', rate: RATE, duration: DURATION }),
   timeUnit: '1s',
-  duration: DURATION,
   preAllocatedVUs: 50,
   maxVUs: 1000,
   exec: 'shop',

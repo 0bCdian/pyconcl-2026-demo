@@ -15,4 +15,6 @@ grafana:
   adminPassword: pycon
   grafana.ini:
     auth.anonymous: {enabled: true, org_role: Viewer}
+    security: {allow_embedding: true}
+    server: {root_url: "http://localhost:8001/api/v1/namespaces/monitoring/services/kps-grafana:80/proxy/"}
     dashboards: {default_home_dashboard_path: /tmp/dashboards/shop.json}
