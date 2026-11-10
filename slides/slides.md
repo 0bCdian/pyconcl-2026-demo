@@ -38,9 +38,8 @@ exportFilename: misma-app-dos-resultados-distintos
 </div>
 
 <!--
-(0:00) Abrir con la pregunta: ¿cuántos de ustedes tienen Python corriendo en un contenedor? Esto es lo mismo, dos veces.
-Los sellos son como los de los alimentos: se ganan con umbrales medidos, y la tabla dice cuánto pesa cada versión.
-Si el QR ya funciona, que lo escaneen ahora: lo vamos a usar en unos minutos.
+(0:00) Esto es lo mismo, dos veces: una app en un contenedor, desplegada de dos maneras. Vamos a mirar qué cambia y a mostrar la evidencia.
+La tabla es el resumen de toda la charla. Si el QR ya funciona, que lo escaneen ahora.
 -->
 
 ---
@@ -52,24 +51,23 @@ Si el QR ya funciona, que lo escaneen ahora: lo vamos a usar en unos minutos.
 ```python
 @app.post("/orders")
 async def create_order(order: Order):
-    total = order_total(order)
-    response = await app.state.payments.post(
-        PAYMENTS_URL, json={"customer_id": order.customer_id, "amount": total}
-    )
-    response.raise_for_status()
-    return {"total": total, "payment_id": response.json()["payment_id"]}
+    order_id, total = uuid4(), order_total(order)
+    charge = await app.state.payments.post(PAYMENTS_URL, json={...})
+    charge.raise_for_status()
+    await app.state.db.execute("INSERT INTO orders ...", order_id, ...)
+    return {"order_id": order_id, "total": total}
 ```
 
   <div class="flujo">
-    <p><strong>Catálogo</strong> con pandas, leído de un bucket al arrancar.</p>
-    <p><strong>Órdenes</strong> que cobran en un servicio de pagos de ~150 ms.</p>
+    <p><strong>Catálogo</strong> con pandas, leído de un bucket.</p>
+    <p><strong>Órdenes</strong> que cobran en un servicio de pagos (~150 ms) y se guardan en PostgreSQL.</p>
   </div>
   </div>
   <footer><Origen>app/app.py · FastAPI</Origen></footer>
 </div>
 
 <!--
-(1:00) La app es aburrida a propósito: lee un catálogo, cobra una orden. Lo que nos importa es cómo se empaca y cómo arranca.
+(0:45) La app es aburrida a propósito: cobra y guarda la orden. Si el cobro funciona y la orden no se guarda, el cliente pagó y no tiene nada. Eso lo vamos a ver.
 -->
 
 ---
@@ -90,7 +88,7 @@ async def create_order(order: Order):
 </div>
 
 <!--
-(2:00) Esto es todo lo que cambia. El A es el Dockerfile que sale de cualquier tutorial. Nada de esto rompe un test ni un linter.
+(1:45) Esto es todo lo que cambia. El A es el Dockerfile que sale de cualquier tutorial. Nada de esto rompe un test ni un linter.
 -->
 
 ---
@@ -109,25 +107,7 @@ async def create_order(order: Order):
 </div>
 
 <!--
-(3:00) Si una comparación no es justa, no sirve. Mismo manifiesto, mismos recursos, misma carga. Todo lo que van a ver se reproduce con los scripts del repo.
--->
-
----
-
-<div class="bandas">
-  <h2>Cómo se gana un sello</h2>
-  <div class="evidencia umbrales">
-    <div><Seal word="memoria" :size="168" class="stamp" v-click /><p>Más de 512 MiB por pod con 200 rps</p></div>
-    <div><Seal word="workers" :size="168" class="stamp" v-click /><p>Más procesos que CPUs en su límite</p></div>
-    <div><Seal word="pérdidas" :size="168" class="stamp" v-click /><p>Alguna orden perdida o cobrada sin confirmar en un deploy</p></div>
-    <div><Seal word="peso" :size="168" foot="medido en Podman" class="stamp" v-click /><p>Una imagen de más de 1 GB</p></div>
-    <div><Seal word="arranque" :size="168" foot="medido en Podman" class="stamp" v-click /><p>Más de 5 s hasta el primer 200</p></div>
-  </div>
-  <footer><p class="muted">Umbrales de esta charla, no de la ley. La versión B no gana ninguno.</p></footer>
-</div>
-
-<!--
-(4:00) Cada clic estampa un sello en la versión A. Los umbrales son nuestros, pero cada uno se cruza con una medición.
+(2:30) Si una comparación no es justa, no sirve. Todo lo que van a ver se reproduce con los scripts del repo.
 -->
 
 ---
@@ -137,30 +117,13 @@ async def create_order(order: Order):
   <div>
     <h1>Saquen el celular</h1>
     <p>Toquen <strong>COMPRAR</strong>. Cada toque es una orden real, la misma para A y para B.</p>
+    <p class="aviso">La arena queda abierta toda la charla. Habrá dos eventos: un pico de tráfico y un deploy.</p>
   </div>
 </div>
 
 <!--
-DEMO 1 (5:00, ~3 min). Cambiar a la pantalla de la arena (/screen). k6 corre de fondo a 200 rps por versión.
-Mensaje: en un día tranquilo, A y B son idénticas. Si alguien ve diferencias, que lo diga: no hay.
-Volver al deck cuando los dos lienzos vayan parejos.
--->
-
----
-
-<div class="bandas">
-  <h2>Las dos, en vivo</h2>
-  <div class="evidencia sala">
-    <Grafana :panel="6" title="Requests OK por segundo" />
-    <Grafana :panel="7" title="Errores por segundo" />
-    <Grafana :panel="11" title="Memoria por pod" />
-    <Grafana :panel="10" title="CPU throttling" />
-  </div>
-  <footer><Origen>Grafana en el cluster · bad = A, good = B</Origen><Origen>Prometheus mide cada 10 s: lo que ven va unos 15 s atrasado</Origen></footer>
-</div>
-
-<!--
-(8:00) Mismo tráfico, mismos números de servicio. Lo único distinto ya se ve: la memoria por pod.
+(3:15) Que escaneen y compren. Esta sesión sigue abierta hasta el final; no se cierra entre eventos.
+Hacer: tener `make load RATE=200` corriendo de fondo y la pantalla de la arena (/screen) cargada. Seguir cuando los dos lienzos vayan parejos: en un día tranquilo, A y B son idénticas.
 -->
 
 ---
@@ -186,8 +149,7 @@ $ kubectl exec deploy/bad -- cat /sys/fs/cgroup/cpu.max
 </div>
 
 <!--
-(8:00) Esta es la práctica que más pesa. Dentro del contenedor, os.cpu_count() miente: ve el nodo, no la cuota.
-El límite vive en cgroups: cpu.max = 100 ms cada 100 ms, o sea 1 CPU. gunicorn calcula 2n+1 con n = 8.
+(4:15) Primer síntoma: memoria y throttling. Dentro del contenedor, os.cpu_count() ve el nodo, no la cuota. El límite vive en cgroups: cpu.max = 100 ms cada 100 ms, o sea 1 CPU. gunicorn calcula 2n+1 con n = 8.
 -->
 
 ---
@@ -210,48 +172,60 @@ El límite vive en cgroups: cpu.max = 100 ms cada 100 ms, o sea 1 CPU. gunicorn 
 </div>
 
 <!--
-(9:30) 15 veces más memoria para servir lo mismo. Y con un pico, los 17 procesos se pelean la misma CPU: throttling al 100%.
-Los hilos: numpy (OpenBLAS) también cuenta los 8 núcleos, 8 hilos por proceso. En esta app no cambia nada medible, pero en cargas numéricas sí.
+(5:30) Con la misma carga, A usa 15 veces más memoria. Y con un pico, los 17 procesos se pelean la misma CPU. Ahora lo vemos: es el primer evento.
+Los hilos: numpy (OpenBLAS) también cuenta los 8 núcleos. En esta app no cambia nada medible.
 -->
 
 ---
 
 <div class="demo vivo">
-  <Qr target="arena" :size="230" label="Sigan comprando" />
-  <div class="pantalla">
+  <div class="cabecera">
     <h1>El pico</h1>
-    <p>Subimos la carga a <strong>550 rps</strong> por versión, para las dos al mismo tiempo.</p>
-    <div class="paneles">
-      <Grafana :panel="6" title="Requests OK por segundo" />
-      <Grafana :panel="10" title="CPU throttling" />
-    </div>
+    <p>Subimos la carga a <strong>550 rps</strong> por versión, en las dos al mismo tiempo.</p>
+  </div>
+  <Arena />
+  <div class="lateral">
+    <Grafana :panel="6" title="Requests OK por segundo" />
+    <Grafana :panel="10" title="CPU throttling" />
+    <Qr target="arena" :size="96" label="Sigan comprando" />
   </div>
 </div>
 
 <!--
-DEMO 2 (11:00, ~3 min). En la terminal: make load RATE=<k6> (k6 + el tope de la arena tiene que quedar bajo ~600 rps por versión).
-Cambiar a la arena: el lienzo de A se llena de rojo, el de B no. Mostrar Grafana: CPU throttling 100% contra ~5%.
-Volver a 200 rps antes de seguir.
+(6:45, ~3 min) Hacer: en la terminal, `make load RATE=550` (la arena más k6 tienen que quedar bajo ~600 rps por versión).
+Decir: miren el lienzo de A llenarse de rojo y el de B no. Los paneles: A sirve ~300 rps y su CPU throttling llega al 100%; B sirve los 550.
+Prometheus mide cada 10 s: lo que ven va unos 15 s atrasado. Al terminar: `make load RATE=200` y seguir. Si el cluster no responde, se ven las capturas.
 -->
 
 ---
 
 <div class="bandas">
-  <h2>Un proceso por contenedor</h2>
-  <div class="evidencia dos">
-    <dl class="reglas">
-      <div><dt>Lo simple</dt><dd>1 proceso por contenedor y escalar con réplicas: <span class="num">107 MiB</span>, 550 rps sin errores, arranque de <span class="num">0,7 s</span>.</dd></div>
-      <div><dt>Si necesitas varios</dt><dd>Cuéntalos desde <code>cpu.max</code>, o fíjalos con <code>PYTHON_CPU_COUNT=1</code> desde Python 3.13: <span class="num">270 MiB</span> con 3 workers, 550 rps sin errores.</dd></div>
-      <div><dt>Nunca</dt><dd><code>os.cpu_count()</code> dentro de un contenedor.</dd></div>
-    </dl>
-    <div class="par vertical"><Seal word="workers" :size="132" ghost /><Seal word="memoria" :size="132" ghost /><Seal word="arranque" :size="132" foot="medido en Podman" ghost /></div>
+  <h2 class="largo">Un proceso por contenedor, y escala con réplicas</h2>
+  <div class="evidencia apilado">
+    <div class="fila">
+      <dl class="reglas">
+        <div><dt>Lo simple</dt><dd>1 proceso por contenedor y escalar con réplicas: <span class="num">107 MiB</span>, 550 rps sin errores, arranque de <span class="num">0,7 s</span>.</dd></div>
+        <div><dt>Si necesitas varios</dt><dd>Cuéntalos desde <code>cpu.max</code>, o fíjalos con <code>PYTHON_CPU_COUNT=1</code> desde Python 3.13: <span class="num">270 MiB</span> con 3 workers, 550 rps sin errores.</dd></div>
+        <div><dt>Nunca</dt><dd><code>os.cpu_count()</code> dentro de un contenedor.</dd></div>
+      </dl>
+      <div class="par"><Seal word="workers" :size="104" ghost /><Seal word="memoria" :size="104" ghost /></div>
+    </div>
+    <table class="receta cifras">
+      <thead><tr><th>Mismas 2 CPUs por versión</th><th>Procesos</th><th>Rinde hasta, sin errores</th></tr></thead>
+      <tbody>
+        <tr><th>2 pods × 1 CPU × 1 proceso</th><td>2</td><td><span class="num">~570–620 rps</span></td></tr>
+        <tr><th>1 pod × 2 CPU × 2 workers</th><td>2</td><td><span class="num">~430 rps</span></td></tr>
+        <tr><th>1 pod × 2 CPU × 1 proceso</th><td>1</td><td><span class="num">~300 rps</span> (el GIL deja una CPU sin usar)</td></tr>
+        <tr><th>Versión A: 2 pods × 17 workers</th><td>34</td><td><span class="num">~420 rps</span></td></tr>
+      </tbody>
+    </table>
   </div>
-  <footer><Origen>GKE · la imagen A con esa sola práctica aplicada · 1 corrida por variante</Origen><Origen>Arranque: Podman</Origen></footer>
+  <footer><Origen>GKE · rampa de 100 a 1.000 rps · 1 corrida por fila · sin errores y p95 &lt; 300 ms</Origen><Origen>Fila de A: make stress</Origen><Origen>Una práctica sobre la imagen A: GKE y Podman, 1 corrida</Origen></footer>
 </div>
 
 <!--
-(14:00) Una sola práctica, aplicada a la imagen mala, saca tres sellos.
-Dato para preguntas: con el mismo total de CPU, 2 pods de 1 CPU sirven ~570 rps y 1 pod de 2 CPUs con 2 workers ~430. Un solo proceso no aprovecha 2 CPUs (GIL).
+(9:45) Lo que sale del pico: un proceso por contenedor y escalar con réplicas. Con el mismo total de 2 CPUs, dos pods rinden más que un pod grande; un solo proceso no aprovecha 2 CPUs (GIL).
+Si necesitan varios workers, que los cuenten desde cpu.max.
 -->
 
 ---
@@ -276,25 +250,29 @@ PID 1 /bin/sh -c ./start.sh  # no reenvía SIGTERM
 </div>
 
 <!--
-(15:00) En forma shell, PID 1 es un sh que no reenvía señales. Ni siquiera el CMD en JSON lo arregla si start.sh no hace exec.
+(11:45) Segundo síntoma: los deploys. En forma shell, PID 1 es un sh que no reenvía señales. Ni siquiera el CMD en JSON lo arregla si start.sh no hace exec.
+Ahora el segundo evento, con la arena todavía abierta.
 -->
 
 ---
 
 <div class="demo vivo">
-  <Qr target="arena" :size="230" label="Sigan comprando" />
-  <div class="pantalla">
+  <div class="cabecera">
     <h1>Un deploy</h1>
-    <p>Desplegamos las dos versiones mientras compran. Miren el contador de <strong>cobradas sin orden</strong>.</p>
-    <div class="paneles">
-      <Grafana :panel="7" title="Errores por segundo" />
-      <Grafana :panel="13" title="Réplicas listas" />
-    </div>
+    <p>Desplegamos las dos versiones mientras compran. Miren <strong>cobradas sin orden</strong>.</p>
+  </div>
+  <Arena />
+  <div class="lateral">
+    <Grafana :panel="7" title="Errores por segundo" />
+    <Grafana :panel="13" title="Réplicas listas" />
+    <Qr target="arena" :size="96" label="Sigan comprando" />
   </div>
 </div>
 
 <!--
-DEMO 3 (16:00, ~3 min). make rollout con la arena en pantalla. A pierde órdenes ~40 s después, cuando se acaba el grace period (incluye los 15 s del preStop). B no pierde ninguna.
+(13:00, ~3 min) Hacer: con la carga en 200 rps, `make rollout`.
+Decir: durante ~40 s no pasa nada visible; después A pierde órdenes, cuando se acaba el grace period (incluye los 15 s del preStop). B no pierde ninguna.
+Mostrar el contador de cobradas sin orden de cada versión en la arena. Si el cluster no responde, se ven las capturas.
 -->
 
 ---
@@ -302,11 +280,14 @@ DEMO 3 (16:00, ~3 min). make rollout con la arena en pantalla. A pierde órdenes
 <div class="bandas">
   <h2>Cobradas, sin orden</h2>
   <div class="evidencia dos">
-    <Tabla title="Por deploy" unit="~150 órdenes/s por versión" :rows="[
-      { label: 'Órdenes con error', a: '~30', b: '0', loss: true },
-      { label: 'Cobradas sin confirmar', a: '24–30', b: '0', loss: true },
-      { label: 'Apagado', a: '30 s', b: '0,4 s' },
-    ]" />
+    <div class="consecuencia">
+      <Tabla title="Por deploy" unit="~150 órdenes/s por versión" :rows="[
+        { label: 'Órdenes con error', a: '~30', b: '0', loss: true },
+        { label: 'Cobradas sin orden', a: '24–30', b: '0', loss: true },
+        { label: 'Apagado', a: '30 s', b: '0,4 s' },
+      ]" />
+      <p class="chica">Se cuenta con una consulta SQL entre los cobros y la tabla de órdenes, no restando logs.</p>
+    </div>
     <div class="arreglo">
 
 ```sh
@@ -322,100 +303,42 @@ exec gunicorn -c gunicorn_conf.py app:app
 </div>
 
 <!--
-(19:00) 4 de cada 5 órdenes que fallan ya estaban cobradas: el SIGKILL llega mientras la app espera a pagos.
+(16:00) 4 de cada 5 órdenes que fallan ya estaban cobradas: el SIGKILL llega mientras la app espera a pagos. El arreglo es una palabra: exec.
 Hadolint revisa la forma del CMD, no el exec dentro del script.
 -->
 
 ---
 
 <div class="bandas">
-  <h2>3. Sin DEBUG en producción</h2>
-  <div class="evidencia dos">
-    <div>
-      <p class="cifra">+31<small>%</small></p>
-      <p class="rotulo">de CPU por pod con la misma carga, solo por pasar de INFO a DEBUG</p>
+  <h2 class="largo">3. Una imagen que no pese</h2>
+  <div class="evidencia apilado">
+    <div class="fila">
+      <div class="pesos">
+        <div class="peso"><span class="barra" style="--w: 100%"></span><p><strong class="num">1,44 GB</strong> <code>python:3.13</code> y pip</p></div>
+        <div class="peso"><span class="barra" style="--w: 30.6%"></span><p><strong class="num">440 MB</strong> solo con <code>-slim</code></p></div>
+        <div class="peso"><span class="barra" style="--w: 26.2%"></span><p><strong class="num">377 MB</strong> slim, dos etapas y uv</p></div>
+      </div>
+      <Tabla title="Sin medir" unit="Imagen completa (A) contra slim (B)" :rows="[
+        { label: 'Rebuild tras cambiar una línea de app.py', a: '', b: '', pending: true },
+        { label: 'CVEs conocidas', a: '', b: '', pending: true },
+        { label: 'Pull en un nodo frío', a: '', b: '', pending: true },
+      ]" />
     </div>
-
-```python
-# 463 rps, aunque DEBUG esté desactivado
-log.debug(f"catálogo {json.dumps(catalogo)}")
-
-# 934 rps sin esa línea
-```
-
+    <div class="fila">
+      <Seal word="peso" :size="104" foot="medido en Podman" class="stamp" v-click />
+      <Seal word="peso" :size="104" foot="medido en Podman" ghost v-click />
+      <div class="lineas">
+        <p><strong>Bytecode precompilado:</strong> arranque de B <span class="num">1,6 s</span> → <span class="num">0,9 s</span>.</p>
+        <p><strong>Usuario no-root</strong> <code>USER 1000</code>: seguridad, no cambia ningún número.</p>
+      </div>
+    </div>
   </div>
-  <footer><Origen>CPU: GKE, 200 rps, DEBUG contra INFO</Origen><Origen>Throughput: Podman, 1 worker de uvicorn</Origen></footer>
+  <footer><Origen>Podman · tamaño de la imagen y arranque</Origen><p class="muted">Se descarga en cada nodo nuevo.</p></footer>
 </div>
 
 <!--
-(20:30) La f-string se evalúa siempre, aunque el nivel la descarte: json.dumps del catálogo en cada request. Formato perezoso: log.debug("x=%s", x).
--->
-
----
-
-<div class="bandas">
-  <h2>4. Una imagen que no pese</h2>
-  <div class="evidencia">
-    <div class="pesos">
-      <div class="peso"><span class="barra" style="--w: 100%"></span><p><strong class="num">1,44 GB</strong> <code>python:3.13</code> y pip</p></div>
-      <div class="peso"><span class="barra" style="--w: 30.6%"></span><p><strong class="num">440 MB</strong> solo con <code>-slim</code></p></div>
-      <div class="peso"><span class="barra" style="--w: 26.2%"></span><p><strong class="num">377 MB</strong> slim, dos etapas y uv</p></div>
-    </div>
-    <div class="par vertical">
-      <Seal word="peso" :size="150" foot="medido en Podman" class="stamp" v-click />
-      <Seal word="peso" :size="150" foot="medido en Podman" ghost v-click />
-    </div>
-  </div>
-  <footer><Origen>Podman · tamaño de la imagen</Origen><p class="muted">Se descarga en cada nodo nuevo; el tiempo de pull no lo medí.</p></footer>
-</div>
-
-<!--
-(22:00) El cambio más barato: una palabra en el FROM. Las dos etapas sacan las herramientas de build.
--->
-
----
-
-<div class="bandas">
-  <h2>5 y 6. Lo que queda</h2>
-  <div class="evidencia envases">
-    <div class="ingredientes">
-      <b>Bytecode precompilado</b>
-      <code>UV_COMPILE_BYTECODE=1</code> (pip ya lo hace). Arranque de la versión B: <span class="num">1,6 s</span> → <span class="num">0,9 s</span>.
-    </div>
-    <div class="ingredientes">
-      <b>Usuario no-root</b>
-      <code>USER 1000</code>, numérico: Kubernetes no puede verificar <code>runAsNonRoot</code> con un nombre. Es seguridad: no cambia ningún número de esta charla.
-    </div>
-  </div>
-  <footer><Origen>Arranque: Podman, contenedor creado → primer 200</Origen></footer>
-</div>
-
-<!--
-(23:00) Higiene: rápido de aplicar, impacto chico en rendimiento.
--->
-
----
-
-<div class="bandas">
-  <h2>Qué saca cada práctica</h2>
-  <div class="evidencia">
-    <table class="receta">
-      <thead><tr><th>Práctica</th><th>Sellos que saca</th><th>Medido</th></tr></thead>
-      <tbody>
-        <tr><th>1. Workers según la CPU</th><td>memoria, workers, arranque</td><td><span class="num">1.375 → 107 MiB</span>, pico sin errores</td></tr>
-        <tr><th>2. <code>exec</code> al arrancar</th><td>pérdidas</td><td><span class="num">24–30 → 0</span> cobradas por deploy</td></tr>
-        <tr><th>3. Sin DEBUG</th><td>—</td><td><span class="num">+31%</span> de CPU si lo dejas</td></tr>
-        <tr><th>4. Imagen slim</th><td>peso</td><td><span class="num">1,44 GB → 440 MB</span></td></tr>
-        <tr><th>5. Bytecode</th><td>—</td><td><span class="num">1,6 → 0,9 s</span> de arranque</td></tr>
-        <tr><th>6. No-root</th><td>—</td><td>seguridad</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <footer><Origen>Cada fila: la imagen A con una sola práctica aplicada, salvo bytecode (versión B)</Origen></footer>
-</div>
-
-<!--
-(24:00) Las dos primeras arreglan fallas distintas y ninguna basta sola: una arregla memoria y picos, la otra los deploys.
+(17:30) Tercer síntoma: la imagen. El cambio más barato es una palabra en el FROM; las dos etapas sacan las herramientas de build. El lockfile se copia antes que el código para que el cache de capas sirva.
+PENDIENTE: medir rebuild, CVEs y pull en nodo frío antes del 14 de noviembre. No dar esos números hasta que existan.
 -->
 
 ---
@@ -433,28 +356,28 @@ log.debug(f"catálogo {json.dumps(catalogo)}")
 </div>
 
 <!--
-(25:00) Ser honestos con los límites: 1 proceso por pod rinde más antes del límite, pero no se defiende sola de una sobrecarga. HPA antes del punto de quiebre.
+(20:00) Los límites, sin adornos: 1 proceso por pod rinde más antes del límite, pero no se defiende sola de una sobrecarga. HPA antes del punto de quiebre.
 -->
 
 ---
 
 <div class="bandas">
-  <h2>Modo de preparación</h2>
+  <h2>Para el lunes</h2>
   <div class="evidencia">
     <ol class="preparacion">
       <li>Calcula los workers desde el límite del contenedor, o corre 1 proceso por contenedor. Nunca con <code>os.cpu_count()</code>.</li>
       <li><code>exec</code> al final del script de arranque y el <code>CMD</code> en forma exec.</li>
-      <li>INFO o WARNING en producción, y formato perezoso: <code>log.debug("x=%s", x)</code>.</li>
+      <li>INFO o WARNING en producción y formato perezoso, <code>log.debug("x=%s", x)</code>: <span class="num">+31%</span> de CPU con DEBUG a la misma carga.</li>
       <li>Base <code>slim</code> con versión fija y multi-stage.</li>
       <li>Bytecode precompilado: <code>UV_COMPILE_BYTECODE=1</code>.</li>
       <li>Usuario no-root con UID numérico: <code>USER 1000</code>.</li>
     </ol>
   </div>
-  <footer><Origen>CHECKLIST.md, con el resto de las prácticas</Origen></footer>
+  <footer><Origen>CHECKLIST.md, con el resto de las prácticas</Origen><Origen>CPU con DEBUG: GKE, 200 rps, contra INFO</Origen></footer>
 </div>
 
 <!--
-(25:30) Lo que se llevan para el lunes. El checklist completo está en el repo.
+(22:00) Lo que se llevan para el lunes. Las dos primeras arreglan fallas distintas y ninguna basta sola. El checklist completo está en el repo.
 -->
 
 ---
@@ -478,5 +401,5 @@ log.debug(f"catálogo {json.dumps(catalogo)}")
 </div>
 
 <!--
-(26:00) Cierre. Preguntas.
+(24:30) Cierre. Preguntas desde el 25:00.
 -->

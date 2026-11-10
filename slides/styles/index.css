@@ -92,9 +92,6 @@
 .evidencia.dos .reglas > div { grid-template-columns: 220px 1fr; }
 .evidencia.dos .reglas dt { font-size: 28px; }
 
-.umbrales { justify-content: space-between; align-items: flex-start !important; flex-wrap: wrap; align-content: center; }
-.umbrales > div { width: 196px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.umbrales p { font-size: 17px; font-weight: 600; text-align: center; line-height: 1.3; }
 
 .peso { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .barra { display: block; height: 54px; width: var(--w); background: var(--ink); }
@@ -118,8 +115,26 @@
 .preparacion li:first-child { border-top: none; }
 .preparacion li::before { content: counter(paso); position: absolute; left: 0; top: 10px; font-family: var(--display); font-stretch: 75%; font-weight: 900; font-size: 34px; line-height: 1; }
 
-.sala { display: grid !important; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px !important; min-height: 0; }
-.demo.vivo { grid-template-columns: 250px 1fr; gap: 40px; align-items: start; }
-.demo.vivo .pantalla { display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0; }
-.demo.vivo h1 { font-size: 80px; margin-bottom: 0; }
-.demo.vivo .paneles { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; min-height: 0; }
+.demo.vivo { grid-template-columns: 1fr 340px; grid-template-rows: auto minmax(0, 1fr); gap: 14px 24px; align-items: stretch; }
+.demo.vivo h1 { font-size: 72px; margin: 0; }
+.demo.vivo .cabecera p { font-size: 24px; max-width: none; }
+.demo p.aviso { margin-top: 18px; font-size: 22px; }
+.largo { max-width: none !important; font-size: 54px !important; }
+.evidencia.apilado { flex-direction: column; align-items: stretch !important; justify-content: center; gap: 18px !important; }
+.apilado .fila { display: flex; align-items: center; gap: 32px; }
+.apilado .fila > .reglas, .apilado .fila > .pesos, .apilado .fila > .tabla { flex: 1 1 0; min-width: 0; }
+.apilado .reglas > div { grid-template-columns: 230px 1fr; padding: 8px 0; }
+.apilado .reglas dt { font-size: 28px; }
+.apilado .reglas dd { font-size: 21px; }
+.apilado .receta { font-size: 21px; }
+.receta.cifras td:nth-child(2) { text-transform: none; font-size: inherit; font-weight: 600; letter-spacing: 0; }
+.apilado .pesos { gap: 12px; }
+.apilado .barra { height: 34px; }
+.lineas { display: flex; flex-direction: column; gap: 6px; }
+.lineas p { font-size: 21px; max-width: none; }
+.chica { font-size: 21px !important; }
+.lateral { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.lateral > .grafana, .lateral > img, .lateral > div { flex: 1 1 0; min-height: 0; }
+.lateral .qr { flex: none; }
+.cabecera { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 32px; }
+.cabecera h1 { white-space: nowrap; flex: none; }

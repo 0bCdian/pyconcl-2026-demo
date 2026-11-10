@@ -39,7 +39,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (scenario) (k6_http_reqs_total{scenario=~\"bad|good\", expected_response=\"true\"})",
+          "expr": "label_replace(label_replace(sum by (scenario) (k6_http_reqs_total{scenario=~\"bad|good\", expected_response=\"true\"}), \"scenario\", \"A\", \"scenario\", \"bad\"), \"scenario\", \"B\", \"scenario\", \"good\")",
           "legendFormat": "{{scenario}}",
           "refId": "A"
         }
@@ -55,7 +55,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -70,7 +70,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -114,7 +114,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (scenario) (k6_http_reqs_total{scenario=~\"bad|good\", expected_response=\"false\"})",
+          "expr": "label_replace(label_replace(sum by (scenario) (k6_http_reqs_total{scenario=~\"bad|good\", expected_response=\"false\"}), \"scenario\", \"A\", \"scenario\", \"bad\"), \"scenario\", \"B\", \"scenario\", \"good\")",
           "legendFormat": "{{scenario}}",
           "refId": "A"
         }
@@ -130,7 +130,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -145,7 +145,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -189,7 +189,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (scenario) (k6_dropped_iterations_total{scenario=~\"bad|good\"})",
+          "expr": "label_replace(label_replace(sum by (scenario) (k6_dropped_iterations_total{scenario=~\"bad|good\"}), \"scenario\", \"A\", \"scenario\", \"bad\"), \"scenario\", \"B\", \"scenario\", \"good\")",
           "legendFormat": "{{scenario}}",
           "refId": "A"
         }
@@ -205,7 +205,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -220,7 +220,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -276,7 +276,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (scenario) (rate(k6_http_reqs_total{scenario=~\"bad|good\", expected_response=\"true\"}[30s]))",
+          "expr": "label_replace(label_replace(sum by (scenario) (rate(k6_http_reqs_total{scenario=~\"bad|good\", expected_response=\"true\"}[30s])), \"scenario\", \"A\", \"scenario\", \"bad\"), \"scenario\", \"B\", \"scenario\", \"good\")",
           "legendFormat": "{{scenario}}",
           "refId": "A"
         }
@@ -292,7 +292,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -307,7 +307,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -342,7 +342,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (scenario) (rate(k6_http_reqs_total{scenario=~\"bad|good\", expected_response=\"false\"}[30s]))",
+          "expr": "label_replace(label_replace(sum by (scenario) (rate(k6_http_reqs_total{scenario=~\"bad|good\", expected_response=\"false\"}[30s])), \"scenario\", \"A\", \"scenario\", \"bad\"), \"scenario\", \"B\", \"scenario\", \"good\")",
           "legendFormat": "{{scenario}}",
           "refId": "A"
         }
@@ -358,7 +358,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -373,7 +373,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -408,7 +408,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "max by (scenario) (k6_http_req_duration_p95{scenario=~\"bad|good\"})",
+          "expr": "label_replace(label_replace(max by (scenario) (k6_http_req_duration_p95{scenario=~\"bad|good\"}), \"scenario\", \"A\", \"scenario\", \"bad\"), \"scenario\", \"B\", \"scenario\", \"good\")",
           "legendFormat": "{{scenario}}",
           "refId": "A"
         }
@@ -424,7 +424,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -439,7 +439,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -486,7 +486,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (container) (rate(container_cpu_cfs_throttled_periods_total{namespace=\"demo\", container=~\"bad|good\"}[1m])) / sum by (container) (rate(container_cpu_cfs_periods_total{namespace=\"demo\", container=~\"bad|good\"}[1m]))",
+          "expr": "label_replace(label_replace(sum by (container) (rate(container_cpu_cfs_throttled_periods_total{namespace=\"demo\", container=~\"bad|good\"}[1m])) / sum by (container) (rate(container_cpu_cfs_periods_total{namespace=\"demo\", container=~\"bad|good\"}[1m])), \"container\", \"A\", \"container\", \"bad\"), \"container\", \"B\", \"container\", \"good\")",
           "legendFormat": "{{container}}",
           "refId": "A"
         }
@@ -502,7 +502,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -517,7 +517,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -552,7 +552,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"demo\", container=~\"bad|good\"})",
+          "expr": "label_replace(label_replace(sum by (pod) (container_memory_working_set_bytes{namespace=\"demo\", container=~\"bad|good\"}), \"pod\", \"A-$1\", \"pod\", \"bad-(.*)\"), \"pod\", \"B-$1\", \"pod\", \"good-(.*)\")",
           "legendFormat": "{{pod}}",
           "refId": "A"
         }
@@ -568,7 +568,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -583,7 +583,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -618,7 +618,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (container) (increase(container_oom_events_total{namespace=\"demo\", container=~\"bad|good\"}[1m]))",
+          "expr": "label_replace(label_replace(sum by (container) (increase(container_oom_events_total{namespace=\"demo\", container=~\"bad|good\"}[1m])), \"container\", \"A\", \"container\", \"bad\"), \"container\", \"B\", \"container\", \"good\")",
           "legendFormat": "{{container}}",
           "refId": "A"
         }
@@ -634,7 +634,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -649,7 +649,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -684,7 +684,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "kube_deployment_status_replicas_ready{namespace=\"demo\", deployment=~\"bad|good\"}",
+          "expr": "label_replace(label_replace(kube_deployment_status_replicas_ready{namespace=\"demo\", deployment=~\"bad|good\"}, \"deployment\", \"A\", \"deployment\", \"bad\"), \"deployment\", \"B\", \"deployment\", \"good\")",
           "legendFormat": "{{deployment}}",
           "refId": "A"
         }
@@ -700,7 +700,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -715,7 +715,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {
@@ -750,7 +750,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (container) (kube_pod_container_status_restarts_total{namespace=\"demo\", container=~\"bad|good\"})",
+          "expr": "label_replace(label_replace(sum by (container) (kube_pod_container_status_restarts_total{namespace=\"demo\", container=~\"bad|good\"}), \"container\", \"A\", \"container\", \"bad\"), \"container\", \"B\", \"container\", \"good\")",
           "legendFormat": "{{container}}",
           "refId": "A"
         }
@@ -766,7 +766,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "bad"
+              "options": "A"
             },
             "properties": [
               {
@@ -781,7 +781,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "good"
+              "options": "B"
             },
             "properties": [
               {

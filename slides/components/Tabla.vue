@@ -1,5 +1,5 @@
 <script setup lang="ts">
-type Row = { label: string, a: string, b: string, loss?: boolean, sub?: boolean }
+type Row = { label: string, a: string, b: string, loss?: boolean, sub?: boolean, pending?: boolean }
 const props = defineProps<{ title?: string, rows: Row[], unit?: string, origin?: string }>()
 </script>
 
@@ -12,8 +12,8 @@ const props = defineProps<{ title?: string, rows: Row[], unit?: string, origin?:
       <tbody>
         <tr v-for="row in props.rows" :key="row.label" :class="{ sub: row.sub }">
           <th scope="row">{{ row.label }}</th>
-          <td :class="{ loss: row.loss }">{{ row.a }}</td>
-          <td>{{ row.b }}</td>
+          <td :class="{ loss: row.loss, pend: row.pending }">{{ row.pending ? 'PENDIENTE' : row.a }}</td>
+          <td :class="{ pend: row.pending }">{{ row.pending ? 'PENDIENTE' : row.b }}</td>
         </tr>
       </tbody>
     </table>
@@ -32,6 +32,7 @@ td { text-align: right; font-family: var(--mono); font-size: 18px; font-weight: 
 tbody tr { border-bottom: 1px solid var(--ink); }
 tbody tr:last-child { border-bottom: 4px solid var(--ink); }
 tr.sub th { font-weight: 500; padding-left: 16px; }
-td.loss { color: var(--loss); }
+td.loss, td.pend { color: var(--loss); }
+td.pend { font-weight: 800; letter-spacing: .04em; }
 .origin { font-size: 12.5px; font-weight: 600; padding-top: 8px; color: var(--ink); }
 </style>
