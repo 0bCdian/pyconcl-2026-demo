@@ -9,7 +9,7 @@ serve() { $UV uvicorn "$@" --port 8100 >"$out/server.log" 2>&1 & }
 ready() { until curl -sf -o /dev/null -m 1 "localhost:8100$1"; do sleep 0.2; done; }
 stop() { pkill -f "uvicorn .*--port 8100" || true; while curl -s -o /dev/null -m 1 localhost:8100; do sleep 0.2; done; }
 
-(cd ../../payments && uv run -q uvicorn app:app --port 9000 --workers 4 --no-access-log >/dev/null 2>&1) &
+$UV uvicorn slow_service:app --port 9000 --workers 4 --no-access-log >/dev/null 2>&1 &
 trap 'stop; pkill -f "uvicorn .*--port 9000" || true' EXIT
 until curl -s -o /dev/null -X POST localhost:9000/charge; do sleep 0.2; done
 
