@@ -51,11 +51,11 @@ La tabla es el resumen de toda la charla. Si el QR ya funciona, que lo escaneen 
 ```python
 @app.post("/orders")
 async def create_order(order: Order):
-    order_id, total = uuid4(), order_total(order)
-    charge = await app.state.payments.post(PAYMENTS_URL, json={...})
-    charge.raise_for_status()
-    await app.state.db.execute("INSERT INTO orders ...", order_id, ...)
-    return {"order_id": order_id, "total": total}
+    total, order_id = order_total(order), uuid.uuid4()
+    response = await app.state.payments.post(PAYMENTS_URL, json={...})
+    response.raise_for_status()
+    await app.state.db.execute("insert into orders ...", order_id, ...)
+    return {"order_id": str(order_id), "total": total, ...}
 ```
 
   <div class="flujo">
