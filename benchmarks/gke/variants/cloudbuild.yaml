@@ -1,0 +1,28 @@
+steps:
+  - id: bad
+    name: gcr.io/cloud-builders/docker
+    args: [build, -f, deploy/bad/Dockerfile, -t, bad, .]
+  - id: workers1
+    name: gcr.io/cloud-builders/docker
+    args: [build, -f, benchmarks/gke/variants/workers1.Dockerfile, -t, "${_REPO}/bad-workers1:latest", benchmarks/gke/variants]
+    waitFor: [bad]
+  - id: exec
+    name: gcr.io/cloud-builders/docker
+    args: [build, -f, benchmarks/gke/variants/exec.Dockerfile, -t, "${_REPO}/bad-exec:latest", benchmarks/gke/variants]
+    waitFor: [bad]
+  - id: cgroup
+    name: gcr.io/cloud-builders/docker
+    args: [build, -f, benchmarks/gke/variants/cgroup.Dockerfile, -t, "${_REPO}/bad-cgroup:latest", benchmarks/gke/variants]
+    waitFor: [bad]
+  - id: slim
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args: [-c, "sed 's/^FROM python:3.13$/FROM python:3.13-slim/' deploy/bad/Dockerfile > /workspace/slim.Dockerfile && docker build -f /workspace/slim.Dockerfile -t ${_REPO}/bad-slim:latest ."]
+    waitFor: ["-"]
+images:
+  - "${_REPO}/bad-workers1:latest"
+  - "${_REPO}/bad-exec:latest"
+  - "${_REPO}/bad-cgroup:latest"
+  - "${_REPO}/bad-slim:latest"
+options:
+  logging: CLOUD_LOGGING_ONLY
