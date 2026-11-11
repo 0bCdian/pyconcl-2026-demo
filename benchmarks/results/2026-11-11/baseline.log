@@ -1,0 +1,226 @@
+######## baseline run 1 13:15:38
+13:17:03
+  memoria/pod MiB        bad=1427.164  good=93.523
+  memoria max MiB        bad=1428.984  good=93.828
+  limite MiB             bad=2048.000  good=2048.000
+  cpu/pod cores          bad=0.364  good=0.306
+  throttling             bad=0.000  good=0.000
+  listos                 kube-state-metrics=2.000  kube-state-metrics=2.000
+  reinicios              bad=2.000  good=6.000
+  oom events 5m          bad=0.000  good=0.000
+  payments cpu           payments=0.307
+/private/tmp/claude-501/-Users-user/48b397db-8694-46bc-bc56-7b90b3adf8cc/scratchpad/baseline.sh: line 4: 59281 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+13:18:20 offered=bad=546 good=550
+   ok/s      bad=236 good=550
+   err/s     bad=151
+   dropped/s bad=158 good=0
+   p95 ms    bad=5001 good=253
+   cpu/pod   bad=0.86 good=0.84
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.64 payments=0.64 tools_node=
+13:18:52 offered=bad=549
+   ok/s      bad=283 good=550
+   err/s     bad=154
+   dropped/s bad=112
+   p95 ms    bad=5001 good=251
+   cpu/pod   bad=0.83 good=0.70
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.66 payments=0.59 tools_node=
+13:19:23 offered=bad=534
+   ok/s      bad=300 good=550
+   err/s     bad=125
+   dropped/s bad=109
+   p95 ms    bad=5001 good=253
+   cpu/pod   bad=0.90 good=0.85
+   throttle  bad=0.99 good=0.00
+   harness   k6=0.77 payments=0.66 tools_node=
+13:19:55 offered=bad=550 good=551
+   ok/s      bad=320 good=547
+   err/s     bad=132
+   dropped/s bad=98 good=4
+   p95 ms    bad=5001 good=263
+   cpu/pod   bad=1.00 good=0.82
+   throttle  bad=1.00 good=0.02
+   harness   k6=0.78 payments=0.69 tools_node=
+13:20:26 offered=bad=466
+   ok/s      bad=282 good=427
+   err/s     bad=106
+   dropped/s bad=73
+   p95 ms    bad=5001 good=288
+   cpu/pod   bad=0.97 good=0.91
+   throttle  bad=0.97 good=0.04
+   harness   k6=0.75 payments=0.62 tools_node=
+13:20:58 offered=
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5001 good=288
+   cpu/pod   bad=0.35 good=0.19
+   throttle  bad=0.35 good=0.01
+   harness   payments=0.29 tools_node=
+13:21:29 offered=
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5001 good=288
+   cpu/pod   bad=0.03 good=0.00
+   throttle  bad=0.00 good=0.00
+   harness   payments=0.03 tools_node=
+    bad-846b5946d9-hx7tn 1/1 Running restarts=1
+    bad-846b5946d9-ppzdd 1/1 Running restarts=1
+    good-796cccffb5-9zp48 1/1 Running restarts=3
+    good-796cccffb5-hw8c6 1/1 Running restarts=3
+== rollout at 13:22:51, 200 orders/s per side
+   bad: cobros=18054 ordenes=18028 error_al_cliente=31 cobradas_sin_orden=26
+   good: cobros=18058 ordenes=18058 error_al_cliente=0 cobradas_sin_orden=0
+######## baseline run 2 13:25:16
+13:26:41
+  memoria/pod MiB        bad=1431.973  good=95.229
+  memoria max MiB        bad=1432.969  good=95.312
+  limite MiB             bad=2048.000  good=2048.000
+  cpu/pod cores          bad=0.285  good=0.315
+  throttling             bad=0.000  good=0.000
+  listos                 kube-state-metrics=2.000  kube-state-metrics=2.000
+  reinicios              bad=0.000  good=0.000
+  oom events 5m          bad=0.000  good=0.000
+  payments cpu           payments=0.288
+/private/tmp/claude-501/-Users-user/48b397db-8694-46bc-bc56-7b90b3adf8cc/scratchpad/baseline.sh: line 4: 60236 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+13:27:57 offered=bad=545
+   ok/s      bad=303 good=550
+   err/s     bad=138
+   dropped/s bad=104
+   p95 ms    bad=5002 good=249
+   cpu/pod   bad=1.00 good=0.58
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.91 payments=0.66 tools_node=
+13:28:29 offered=bad=551
+   ok/s      bad=311 good=550
+   err/s     bad=140
+   dropped/s bad=99
+   p95 ms    bad=5002 good=249
+   cpu/pod   bad=0.88 good=0.77
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.84 payments=0.80 tools_node=
+13:29:00 offered=bad=553
+   ok/s      bad=309 good=550
+   err/s     bad=132
+   dropped/s bad=112
+   p95 ms    bad=5002 good=248
+   cpu/pod   bad=1.00 good=0.76
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.61 payments=0.77 tools_node=
+13:29:32 offered=bad=558
+   ok/s      bad=305 good=550
+   err/s     bad=136
+   dropped/s bad=118
+   p95 ms    bad=5002 good=247
+   cpu/pod   bad=1.00 good=0.75
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.83 payments=0.76 tools_node=
+13:30:03 offered=bad=479
+   ok/s      bad=274 good=430
+   err/s     bad=112
+   dropped/s bad=83
+   p95 ms    bad=5002 good=246
+   cpu/pod   bad=0.92 good=0.67
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.62 payments=0.62 tools_node=
+13:30:34 offered=
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5002 good=246
+   cpu/pod   bad=0.33 good=0.25
+   throttle  bad=0.33 good=0.00
+   harness   payments=0.29 tools_node=
+13:31:06 offered=
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5002 good=246
+   cpu/pod   bad=0.03 good=0.00
+   throttle  bad=0.00 good=0.00
+   harness   payments=0.03 tools_node=
+    bad-d9f984545-9chz8 1/1 Running restarts=0
+    bad-d9f984545-n6stc 1/1 Running restarts=0
+    good-7dc766c85-57lm6 1/1 Running restarts=0
+    good-7dc766c85-g6nrk 1/1 Running restarts=0
+== rollout at 13:32:28, 200 orders/s per side
+   bad: cobros=17076 ordenes=17046 error_al_cliente=30 cobradas_sin_orden=30
+   good: cobros=17075 ordenes=17075 error_al_cliente=1 cobradas_sin_orden=0
+######## baseline run 3 13:34:51
+13:36:16
+  memoria/pod MiB        bad=1433.656  good=94.729
+  memoria max MiB        bad=1435.324  good=95.027
+  limite MiB             bad=2048.000  good=2048.000
+  cpu/pod cores          bad=0.371  good=0.304
+  throttling             bad=0.000  good=0.000
+  listos                 kube-state-metrics=2.000  kube-state-metrics=2.000
+  reinicios              bad=0.000  good=0.000
+  oom events 5m          bad=0.000  good=0.000
+  payments cpu           payments=0.308
+/private/tmp/claude-501/-Users-user/48b397db-8694-46bc-bc56-7b90b3adf8cc/scratchpad/baseline.sh: line 4: 60971 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+13:37:32 offered=bad=553
+   ok/s      bad=284 good=549
+   err/s     bad=150
+   dropped/s bad=118
+   p95 ms    bad=5002 good=249
+   cpu/pod   bad=0.88 good=0.80
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.86 payments=0.70 tools_node=
+13:38:04 offered=bad=552
+   ok/s      bad=272 good=550
+   err/s     bad=145
+   dropped/s bad=135
+   p95 ms    bad=5002 good=252
+   cpu/pod   bad=1.00 good=0.68
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.74 payments=0.75 tools_node=
+13:38:35 offered=bad=549
+   ok/s      bad=287 good=550
+   err/s     bad=138
+   dropped/s bad=124
+   p95 ms    bad=5002 good=252
+   cpu/pod   bad=1.00 good=0.72
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.83 payments=0.61 tools_node=
+13:39:07 offered=bad=564
+   ok/s      bad=292 good=550
+   err/s     bad=152
+   dropped/s bad=120
+   p95 ms    bad=5002 good=253
+   cpu/pod   bad=1.00 good=0.71
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.84 payments=0.76 tools_node=
+13:39:38 offered=bad=469
+   ok/s      bad=298 good=433
+   err/s     bad=102
+   dropped/s bad=65
+   p95 ms    bad=5002 good=254
+   cpu/pod   bad=0.91 good=0.74
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.57 payments=0.69 tools_node=
+13:40:10 offered=
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5002 good=254
+   cpu/pod   bad=0.40 good=0.20
+   throttle  bad=0.42 good=0.00
+   harness   payments=0.33 tools_node=
+13:40:41 offered=
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5002 good=254
+   cpu/pod   bad=0.02 good=0.00
+   throttle  bad=0.00 good=0.00
+   harness   payments=0.03 tools_node=
+    bad-779b4db76c-f7fnl 1/1 Running restarts=0
+    bad-779b4db76c-h9mds 1/1 Running restarts=0
+    good-ccffbb64c-7nh5j 1/1 Running restarts=0
+    good-ccffbb64c-qjww6 1/1 Running restarts=0
+== rollout at 13:42:03, 200 orders/s per side
+   bad: cobros=17326 ordenes=17299 error_al_cliente=31 cobradas_sin_orden=27
+   good: cobros=17330 ordenes=17330 error_al_cliente=0 cobradas_sin_orden=0
+######## done 13:44:23

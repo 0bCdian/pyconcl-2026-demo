@@ -1,0 +1,46 @@
+######## workers1-exec
+   procesos: 6 pid1=/usr/local/bin/python3.13 /usr/local/bin/gunicorn -c gunicorn_conf.py app:app 
+  memoria/pod MiB        bad=110.488  good=94.627
+  cpu/pod cores          bad=0.351  good=0.262
+  throttling             bad=0.000  good=0.000
+benchmarks/gke/ablation.sh: line 12: 72498 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+   ok/s      bad=550 good=549
+   err/s     
+   dropped/s good=1
+   p95 ms    bad=262 good=247
+   throttle  bad=0.00 good=0.00
+   ok/s      bad=550 good=549
+   err/s     
+   dropped/s good=1
+   p95 ms    bad=264 good=249
+   throttle  bad=0.00 good=0.00
+   ok/s      bad=550 good=548
+   err/s     
+   dropped/s good=1
+   p95 ms    bad=271 good=256
+   throttle  bad=0.00 good=0.00
+   ok/s      bad=550 good=550
+   err/s     
+   dropped/s 
+   p95 ms    bad=281 good=259
+   throttle  bad=0.00 good=0.00
+   ok/s      bad=413 good=410
+   err/s     
+   dropped/s bad=0 good=3
+   p95 ms    bad=289 good=265
+   throttle  bad=0.00 good=0.00
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=289 good=265
+   throttle  bad=0.00 good=0.00
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=289 good=265
+   throttle  bad=0.00 good=0.00
+    bad-67bb49986-8j489 1/1 Running restarts=0
+    bad-67bb49986-q52r9 1/1 Running restarts=0
+== rollout at 15:24:47, 200 orders/s per side
+   bad: cobros=9200 ordenes=9200 error_al_cliente=2 cobradas_sin_orden=0
+   good: cobros=9202 ordenes=9202 error_al_cliente=0 cobradas_sin_orden=0

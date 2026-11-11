@@ -1,0 +1,26 @@
+######## cgroup-1cpu
+   cpu.max=100000 100000 procesos=10 hilos=44
+  memoria/pod MiB        bad=279.332  good=138.869
+  cpu/pod cores          bad=0.375  good=0.279
+  memoria total MiB      good=278  bad=559
+benchmarks/gke/parallel.sh: line 13: 75278 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+    bad-7f9b65678d-ltc55 1/1 Running restarts=0
+    bad-7f9b65678d-r5vjd 1/1 Running restarts=0
+######## cgroup-2cpu
+   cpu.max=200000 100000 procesos=12 hilos=68
+  memoria/pod MiB        bad=450.137  good=138.615
+  cpu/pod cores          bad=0.747  good=0.284
+  memoria total MiB      good=277  bad=450
+benchmarks/gke/parallel.sh: line 13: 76313 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+Error from server (Forbidden): error when creating "STDIN": jobs.batch "k6" is forbidden: unable to create new content in namespace demo because it is being terminated
+make: *** [load] Error 1
+No resources found in demo namespace.
+Error from server (NotFound): namespaces "demo" not found
+######## workers1-2cpu
+   cpu.max=200000 100000 procesos=8 hilos=20
+  memoria/pod MiB        bad=112.727  good=93.832
+  cpu/pod cores          bad=0.682  good=0.397
+  memoria total MiB      good=188  bad=113
+benchmarks/gke/parallel.sh: line 13: 77288 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+error: error validating "STDIN": error validating data: failed to download openapi: Get "https://203.0.113.10/openapi/v2?timeout=32s": dial tcp 203.0.113.10:443: connect: operation timed out; if you choose to ignore these errors, turn validation off with --validate=false
+make: *** [deploy] Error 1

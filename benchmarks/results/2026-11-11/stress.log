@@ -1,0 +1,180 @@
+15:30:46 offered=
+   ok/s      bad=86 good=86
+   err/s     
+   dropped/s 
+   p95 ms    bad=233 good=232
+   cpu/pod   bad=0.09 good=0.04
+   throttle  bad=0.00 good=0.00
+   harness   k6=0.16 payments=0.07 tools_node=
+15:31:17 offered=
+   ok/s      bad=187 good=187
+   err/s     
+   dropped/s 
+   p95 ms    bad=233 good=233
+   cpu/pod   bad=0.29 good=0.18
+   throttle  bad=0.00 good=0.00
+   harness   k6=0.42 payments=0.31 tools_node=
+15:31:49 offered=
+   ok/s      bad=269 good=269
+   err/s     
+   dropped/s 
+   p95 ms    bad=233 good=233
+   cpu/pod   bad=0.42 good=0.29
+   throttle  bad=0.00 good=0.00
+   harness   k6=0.47 payments=0.44 tools_node=
+15:32:21 offered=
+   ok/s      bad=339 good=339
+   err/s     
+   dropped/s 
+   p95 ms    bad=233 good=233
+   cpu/pod   bad=0.48 good=0.35
+   throttle  bad=0.00 good=0.00
+   harness   k6=0.62 payments=0.43 tools_node=
+15:32:53 offered=
+   ok/s      bad=421 good=420
+   err/s     
+   dropped/s 
+   p95 ms    bad=234 good=235
+   cpu/pod   bad=0.62 good=0.54
+   throttle  bad=0.00 good=0.00
+   harness   k6=0.71 payments=0.63 tools_node=
+15:33:25 offered=bad=452
+   ok/s      bad=397 good=491
+   err/s     bad=17
+   dropped/s bad=39
+   p95 ms    bad=5002 good=237
+   cpu/pod   bad=0.75 good=0.62
+   throttle  bad=0.12 good=0.00
+   harness   k6=0.79 payments=0.67 tools_node=
+15:33:57 offered=bad=557
+   ok/s      bad=272 good=559
+   err/s     bad=145
+   dropped/s bad=143
+   p95 ms    bad=5003 good=240
+   cpu/pod   bad=1.00 good=0.71
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.61 payments=0.78 tools_node=
+15:34:29 offered=bad=650 good=643
+   ok/s      bad=267 good=639
+   err/s     bad=151
+   dropped/s bad=232 good=4
+   p95 ms    bad=5003 good=245
+   cpu/pod   bad=0.92 good=0.72
+   throttle  bad=1.00 good=0.00
+   harness   k6=0.84 payments=0.48 tools_node=
+15:35:01 offered=bad=711 good=710
+   ok/s      bad=269 good=700
+   err/s     bad=153
+   dropped/s bad=289 good=11
+   p95 ms    bad=5003 good=326
+   cpu/pod   bad=0.85 good=0.90
+   throttle  bad=1.00 good=0.08
+   harness   k6=0.64 payments=0.89 tools_node=
+15:35:35 offered=bad=815 good=763
+   ok/s      bad=303 good=584
+   err/s     bad=131 good=48
+   dropped/s bad=382 good=130
+   p95 ms    bad=5017 good=5052
+   cpu/pod   bad=1.00 good=0.90
+   throttle  bad=1.00 good=0.34
+   harness   k6=0.90 payments=0.97 tools_node=
+15:36:06 offered=bad=865 good=862
+   ok/s      bad=307 good=588
+   err/s     bad=131 good=119
+   dropped/s bad=427 good=156
+   p95 ms    bad=5017 good=5036
+   cpu/pod   bad=0.90 good=0.98
+   throttle  bad=0.99 good=0.60
+   harness   k6=0.68 payments=0.78 tools_node=
+15:36:38 offered=bad=945 good=945
+   ok/s      bad=251 good=618
+   err/s     bad=150 good=142
+   dropped/s bad=544 good=185
+   p95 ms    bad=5015 good=5019
+   cpu/pod   bad=1.00 good=0.99
+   throttle  bad=0.99 good=0.54
+   harness   k6=0.88 payments=0.83 tools_node=
+15:37:11 offered=bad=1015 good=1015
+   ok/s      bad=294 good=541
+   err/s     bad=134 good=126
+   dropped/s bad=587 good=348
+   p95 ms    bad=5013 good=5014
+   cpu/pod   bad=0.88 good=0.90
+   throttle  bad=1.00 good=0.65
+   harness   k6=0.92 payments=0.79 tools_node=
+15:37:43 offered=bad=1091 good=1091
+   ok/s      bad=306 good=594
+   err/s     bad=131 good=142
+   dropped/s bad=648 good=352
+   p95 ms    bad=5015 good=5014
+   cpu/pod   bad=0.81 good=1.00
+   throttle  bad=1.00 good=0.56
+   harness   k6=0.69 payments=0.83 tools_node=
+15:38:15 offered=bad=1167 good=1167
+   ok/s      bad=307 good=623
+   err/s     bad=131 good=138
+   dropped/s bad=729 good=406
+   p95 ms    bad=5015 good=5013
+   cpu/pod   bad=1.00 good=1.00
+   throttle  bad=1.00 good=0.74
+   harness   k6=0.90 payments=0.96 tools_node=
+15:38:47 offered=bad=1237 good=1237
+   ok/s      bad=327 good=542
+   err/s     bad=126 good=136
+   dropped/s bad=784 good=560
+   p95 ms    bad=5013 good=5015
+   cpu/pod   bad=1.00 good=0.91
+   throttle  bad=1.00 good=0.52
+   harness   k6=0.91 payments=0.83 tools_node=
+15:39:19 offered=bad=1319 good=1319
+   ok/s      bad=273 good=637
+   err/s     bad=139 good=138
+   dropped/s bad=907 good=544
+   p95 ms    bad=5012 good=5013
+   cpu/pod   bad=0.86 good=1.00
+   throttle  bad=1.00 good=0.60
+   harness   k6=0.93 payments=0.65 tools_node=
+15:39:51 offered=bad=1389 good=1384
+   ok/s      bad=267 good=630
+   err/s     bad=141 good=140
+   dropped/s bad=980 good=614
+   p95 ms    bad=5011 good=5013
+   cpu/pod   bad=0.90 good=1.00
+   throttle  bad=1.00 good=0.70
+   harness   k6=0.90 payments=0.92 tools_node=
+15:40:22 offered=bad=1459 good=1459
+   ok/s      bad=271 good=616
+   err/s     bad=137 good=143
+   dropped/s bad=1052 good=700
+   p95 ms    bad=5012 good=5012
+   cpu/pod   bad=0.91 good=0.93
+   throttle  bad=1.00 good=0.74
+   harness   k6=0.92 payments=0.94 tools_node=
+15:40:55 offered=
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5012 good=5012
+   cpu/pod   bad=0.56 good=0.48
+   throttle  bad=0.54 good=0.49
+   harness   k6=0.36 payments=0.38 tools_node=
+15:41:26 offered=
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5012 good=5012
+   cpu/pod   bad=0.04 good=0.00
+   throttle  bad=0.00 good=0.00
+   harness   payments=0.03 tools_node=
+15:41:58 offered=
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5012 good=5012
+   cpu/pod   bad=0.04 good=0.00
+   throttle  bad=0.00 good=0.00
+   harness   payments=0.03 tools_node=
+bad-677f5fdcc9-5crph    1/1   Running   0     16m
+bad-677f5fdcc9-6k52x    1/1   Running   0     16m
+good-65844c4b99-b6w9b   1/1   Running   0     17m
+good-65844c4b99-mgm86   1/1   Running   0     17m

@@ -1,0 +1,92 @@
+######## cpucount1
+   procesos: 10 pid1=/bin/sh -c ./start.sh 
+  memoria/pod MiB        bad=279.424  good=94.932
+  cpu/pod cores          bad=0.324  good=0.364
+  throttling             bad=0.000  good=0.000
+benchmarks/gke/ablation.sh: line 12: 64533 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+   ok/s      bad=550 good=549
+   err/s     
+   dropped/s good=1
+   p95 ms    bad=277 good=256
+   throttle  bad=0.67 good=0.00
+   ok/s      bad=550 good=550
+   err/s     
+   dropped/s 
+   p95 ms    bad=288 good=260
+   throttle  bad=0.62 good=0.00
+   ok/s      bad=550 good=547
+   err/s     
+   dropped/s good=1
+   p95 ms    bad=294 good=268
+   throttle  bad=0.67 good=0.00
+   ok/s      bad=550 good=550
+   err/s     
+   dropped/s 
+   p95 ms    bad=291 good=272
+   throttle  bad=0.71 good=0.02
+   ok/s      bad=430 good=431
+   err/s     
+   dropped/s 
+   p95 ms    bad=288 good=271
+   throttle  bad=0.54 good=0.01
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=288 good=271
+   throttle  bad=0.18 good=0.00
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=288 good=271
+   throttle  bad=0.00 good=0.00
+    bad-679c5cc5bb-2gnm4 1/1 Running restarts=0
+    bad-679c5cc5bb-f62tj 1/1 Running restarts=0
+== rollout at 14:04:35, 200 orders/s per side
+   bad: cobros=14993 ordenes=14967 error_al_cliente=32 cobradas_sin_orden=26
+   good: cobros=14999 ordenes=14999 error_al_cliente=0 cobradas_sin_orden=0
+######## debug
+   procesos: 24 pid1=/bin/sh -c ./start.sh 
+  memoria/pod MiB        bad=1426.428  good=94.531
+  cpu/pod cores          bad=0.424  good=0.279
+  throttling             bad=0.000  good=0.000
+benchmarks/gke/ablation.sh: line 12: 67126 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+   ok/s      bad=269 good=550
+   err/s     bad=163
+   dropped/s bad=119 good=0
+   p95 ms    bad=5002 good=255
+   throttle  bad=1.00 good=0.00
+   ok/s      bad=255 good=550
+   err/s     bad=155
+   dropped/s bad=131
+   p95 ms    bad=5002 good=252
+   throttle  bad=1.00 good=0.00
+   ok/s      bad=274 good=549
+   err/s     bad=139
+   dropped/s bad=136 good=2
+   p95 ms    bad=5002 good=252
+   throttle  bad=1.00 good=0.00
+   ok/s      bad=292 good=550
+   err/s     bad=132
+   dropped/s bad=123
+   p95 ms    bad=5002 good=252
+   throttle  bad=1.00 good=0.00
+   ok/s      bad=239 good=425
+   err/s     bad=127
+   dropped/s bad=98
+   p95 ms    bad=5002 good=252
+   throttle  bad=1.00 good=0.00
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5002 good=252
+   throttle  bad=0.38 good=0.00
+   ok/s      
+   err/s     
+   dropped/s 
+   p95 ms    bad=5002 good=252
+   throttle  bad=0.00 good=0.00
+    bad-5b7fd56d78-kt88c 1/1 Running restarts=0
+    bad-5b7fd56d78-mp8wh 1/1 Running restarts=0
+== rollout at 14:27:32, 200 orders/s per side
+   bad: cobros=17818 ordenes=17793 error_al_cliente=31 cobradas_sin_orden=25
+   good: cobros=17822 ordenes=17822 error_al_cliente=1 cobradas_sin_orden=0
