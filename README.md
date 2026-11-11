@@ -14,7 +14,7 @@ arena/        la arena del público: los celulares compran en una tienda y el pr
 slides/       el deck de la charla (Slidev)
 scripts/      `local.sh` (`make local`) y `startup.sh` (`make startup`)
 k6/           la carga: 30% órdenes y 70% lecturas del catálogo (`ORDER_SHARE`)
-k8s/          las dos versiones en nodos idénticos, PostgreSQL (CloudNativePG), pagos, la arena, k6, Prometheus y Grafana
+k8s/          las dos versiones en nodos idénticos, PostgreSQL (CloudNativePG), pagos, la arena, el túnel público, k6, Prometheus y Grafana
 infra/        OpenTofu: red, GKE, Artifact Registry, el bucket del catálogo y Workload Identity
 infra/bootstrap/  para empezar desde cero: proyecto, facturación, APIs, bucket de estado y presupuesto
 benchmarks/   los scripts que reproducen cada número de la charla (ver "Reproducir cada número")
@@ -169,6 +169,7 @@ Proyecto nuevo: primero `infra/bootstrap/` (ver su README). Proyecto existente: 
 make init
 make plan SPOT=true    # revisa el plan
 make up SPOT=true      # tofu apply (pide confirmación) + imágenes en Cloud Build + Prometheus/Grafana + CloudNativePG + apps
+make tunnel            # URL pública para los celulares: abre un túnel hacia la arena e imprime la URL
 make grafana           # http://localhost:3000 (admin / pycon)
 make proxy             # kubectl proxy: Grafana, Prometheus y la arena en localhost:8001 (los paneles en vivo del deck usan esta URL)
 make load RATE=100     # k6 dentro del cluster: misma tasa y misma mezcla (30% órdenes) para bad y good durante 30 min
@@ -177,7 +178,9 @@ make startup           # segundos desde que se crea un pod hasta su primer 200
 make down              # borra el namespace `demo` (y con él el disco de la base) y luego tofu apply con stage=off: borra el cluster y los nodos
 ```
 
-PostgreSQL corre con [CloudNativePG](https://cloudnative-pg.io): `make cnpg` instala el operador con Helm y `k8s/demo.yaml` declara un `Cluster` de una instancia. `make deploy` crea el ConfigMap `db-schema` con `db/schema.sql`, que el operador ejecuta al crear la base, y las apps leen `DATABASE_URL` del secret `postgres-app` que genera el operador. El `Cluster` pide un volumen de 10 GiB: en GKE es un disco persistente que crea el propio cluster, fuera del estado de OpenTofu, y por eso `make down` borra primero el namespace. Tres nodos: un `e2-standard-8` por versión y un `e2-standard-4` para k6, el monitoreo, el mock de pagos y PostgreSQL. Estimamos alrededor de 1 USD por hora (sin verificar los precios de la región); con `SPOT=true`, bastante menos. Las dos versiones tienen los mismos recursos por pod: 1 CPU y `MEMORY` (2 GiB por defecto; con `MEMORY=1Gi` la mala no arranca). Con `stage=off` quedan solo la red, el registry, los buckets y las service accounts, sin costo relevante.
+PostgreSQL corre con [CloudNativePG](https://cloudnative-pg.io): `make cnpg` instala el operador con Helm y `k8s/demo.yaml` declara un `Cluster` de una instancia. `make deploy` crea el ConfigMap `db-schema` con `db/schema.sql`, que el operador ejecuta al crear la base, y las apps leen `DATABASE_URL` del secret `postgres-app` que genera el operador. El `Cluster` pide un volumen de 10 GiB: en GKE es un disco persistente que crea el propio cluster, fuera del estado de OpenTofu, y por eso `make down` borra primero el namespace.
+
+`make tunnel` publica la arena con un [quick tunnel de Cloudflare](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/): una URL HTTPS aleatoria `*.trycloudflare.com`, sin cuenta ni IP pública. Reinicia la arena para que el QR apunte a esa URL, así que cambia el token de la pantalla; la URL cambia si el pod del túnel se reinicia. Cloudflare limita estos túneles a 200 requests simultáneos y no pasan Server-Sent Events: sirven para los celulares en un ensayo, y la pantalla del proyector sigue por `make proxy`. No se probó todavía. Tres nodos: un `e2-standard-8` por versión y un `e2-standard-4` para k6, el monitoreo, el mock de pagos y PostgreSQL. Estimamos alrededor de 1 USD por hora (sin verificar los precios de la región); con `SPOT=true`, bastante menos. Las dos versiones tienen los mismos recursos por pod: 1 CPU y `MEMORY` (2 GiB por defecto; con `MEMORY=1Gi` la mala no arranca). Con `stage=off` quedan solo la red, el registry, los buckets y las service accounts, sin costo relevante.
 
 ## Correrlo en tu máquina
 

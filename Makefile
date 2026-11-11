@@ -7,7 +7,7 @@ SPOT     ?= false
 TOFU = tofu -chdir=infra
 out  = $$($(TOFU) output -raw $(1))
 
-.PHONY: init plan up down kubeconfig images monitoring cnpg deploy load stress startup grafana arena proxy rollout status lint local local-load local-down
+.PHONY: init plan up down kubeconfig images monitoring cnpg deploy tunnel load stress startup grafana arena proxy rollout status lint local local-load local-down
 
 init:
 	$(TOFU) init
@@ -67,6 +67,13 @@ proxy:
 	@echo "Prometheus: http://localhost:8001/api/v1/namespaces/monitoring/services/kps-kube-prometheus-stack-prometheus:9090/proxy/"
 	@echo "Arena:      http://localhost:8001/api/v1/namespaces/demo/services/arena:80/proxy/screen?$$(kubectl -n demo logs deploy/arena | grep -m1 -o 'token=[^ ]*')"
 	kubectl proxy --port 8001
+
+tunnel:
+	kubectl apply -f k8s/tunnel.yaml
+	kubectl -n demo rollout status deploy/tunnel
+	@until url=$$(kubectl -n demo logs deploy/tunnel | grep -m1 -o 'https://[a-z0-9-]*\.trycloudflare\.com'); do sleep 1; done; \
+		kubectl -n demo set env deploy/arena PUBLIC_URL=$$url >/dev/null && kubectl -n demo rollout status deploy/arena >/dev/null \
+		&& echo "Celulares: $$url"
 
 arena:
 	@kubectl -n demo logs deploy/arena | grep -m1 -o 'token=[^ ]*' | sed "s|^|Pantalla: http://$$(ipconfig getifaddr en0):8080/screen?|"
