@@ -22,22 +22,47 @@ benchmarks/   los scripts que reproducen cada número de la charla (ver "Reprodu
 
 ## Resultados
 
-> **Re-medición pendiente.** Las cifras de "Resultados", "Qué práctica pesa más" y "Cuántos procesos por pod" se midieron antes de agregar PostgreSQL y con la mezcla de carga anterior (70% órdenes). Hoy k6 envía 30% órdenes y 70% lecturas del catálogo, y cada orden además escribe en la base. Se volverán a medir; hasta entonces ninguna cifra cambió.
+> **Re-medición pendiente en GKE.** Las tablas de Podman ("Resultados" e "Imagen") se midieron el 11 de noviembre de 2026, con PostgreSQL y la mezcla de carga actual (30% órdenes). Las de GKE ("Qué práctica pesa más" y "Cuántos procesos por pod") son anteriores: sin PostgreSQL y con 70% órdenes. Se volverán a medir.
 
 Medidos con `benchmarks/containers.sh` (Podman, cada contenedor limitado a 1 CPU, en un host de 8 núcleos):
 
 | | `deploy/bad` | `deploy/good` |
 |---|---|---|
-| Imagen | 1,44 GB | 377 MB |
-| Arranque hasta el primer 200 | 10–12 s | ~0,9 s (1,6 s sin bytecode precompilado) |
+| Imagen | 1,46 GB | 392 MB |
+| Arranque hasta el primer 200 | 10–17 s según la corrida | ~0,9 s (1,6 s sin bytecode precompilado) |
 | `os.cpu_count()` con 1 CPU de límite | 8, y gunicorn levanta 17 workers (3 con `PYTHON_CPU_COUNT=1`, sin tocar su configuración) | no se usa: 1 worker |
-| 60 s en reposo con 1 GiB | 70–80 procesos muertos por OOM | 0 |
-| 100 rps con 1 GiB | entre 28% y 81% de errores según la corrida (los OOM son aleatorios) | 0%, p95 ≈ 220 ms |
-| 300 rps con 1 GiB | entre 71% y 99,8% de errores | 0%, p95 ≈ 218 ms |
-| 100 y 300 rps con 2 GiB | 0%, p95 ≈ 216–219 ms | |
-| Apagado | 30 s y exit 137 (incluso con `CMD` en JSON, porque `start.sh` no hace `exec`) | 0,4 s y exit 0 |
+| 60 s en reposo con 1 GiB | 48 procesos muertos por OOM (una corrida) | 0 |
+| 100 rps con 1 GiB | 26% de errores (una corrida; los OOM son aleatorios y el resultado cambia entre corridas) | 0%, p95 ≈ 209 ms |
+| 300 rps con 1 GiB | 91% de errores (una corrida) | 0%, p95 ≈ 206 ms |
+| 100 y 300 rps con 2 GiB | 0%, p95 ≈ 205–210 ms | |
+| Apagado | 30 s y exit 137 (incluso con `CMD` en JSON, porque `start.sh` no hace `exec`) | 0,4–0,5 s y exit 0 |
 
 Con el doble de memoria la versión mala rinde igual mientras sobre CPU: el costo de desplegar mal se paga en memoria, en arranques lentos, en deploys que cortan requests y en los picos.
+
+### Imagen
+
+Medido con `benchmarks/image.sh` (Podman). Las vulnerabilidades son las que Trivy 0.76.2 conoce con su base del 10 de noviembre de 2026; cambian cada día.
+
+| | `deploy/bad` | `deploy/good` |
+|---|---|---|
+| Paquetes del sistema (dpkg) | 467 | 87 |
+| Vulnerabilidades conocidas | 4.265 (16 críticas, 716 altas) | 212 (0 críticas, 54 altas) |
+| De esas, con parche disponible | 1.727 | 11 |
+| Reconstruir tras cambiar una línea de `app.py` (3 intentos) | 13,7–14,2 s | 4,8–5,4 s |
+| Capas nuevas por ese cambio, que se suben y se descargan en cada deploy | 311 MB | 0,01 MB |
+
+La mala copia el código antes de `pip install`, así que cualquier cambio de código invalida la capa de dependencias. La buena copia primero el lockfile, instala, y deja `app.py` en la última capa.
+
+`gunicorn --preload` aplicado a la mala, medido con `benchmarks/gke/local-ablation.sh bad bad-preload bad-workers1 good` (Podman, 1 CPU, una corrida):
+
+| | Memoria en reposo | Tras 60 s a 100 rps | Arranque |
+|---|---|---|---|
+| mala (17 workers) | 1.242 MB | 1.248 MB | 10,5–12,1 s |
+| mala con `preload_app = True` | 366 MB | 381 MB | 0,7 s |
+| mala con 1 worker | 96 MB | 99 MB | 0,7 s |
+| buena | 80 MB | 83 MB | 0,9–1,0 s |
+
+Con `--preload` los 17 workers comparten las páginas de lo que se importó antes del fork: baja la memoria a menos de un tercio y el arranque a lo mismo que un solo proceso. Siguen siendo 17 procesos en 1 CPU, con 170 conexiones a la base. No está medido en GKE.
 
 ### Qué práctica pesa más
 
@@ -47,13 +72,13 @@ En GKE, con el mismo manifiesto para las dos (2 pods de 1 CPU y 2 GiB, mismo rea
 
 | Práctica aplicada a la mala | Memoria por pod (200 rps) | Pico de 550 rps | Por deploy (~150 órdenes/s) | Además |
 |---|---|---|---|---|
-| ninguna | 1.375 MiB | ~300 ok/s, p95 > 5 s, 100% throttling | ~30 errores, 24–30 cobradas sin orden | imagen 1,44 GB, arranque 10–12 s, apagado 30 s |
+| ninguna | 1.375 MiB | ~300 ok/s, p95 > 5 s, 100% throttling | ~30 errores, 24–30 cobradas sin orden | imagen 1,46 GB, arranque 10–17 s, apagado 30 s |
 | 1 worker por contenedor | 107 MiB | 550 ok/s, p95 ≈ 255 ms | ~30 errores, pocas cobradas sin orden (4, una corrida) | arranque 0,7 s |
 | `PYTHON_CPU_COUNT=1` (3 workers) | 270 MiB | 550 ok/s, p95 ≈ 225 ms | 28 errores, pocas cobradas sin orden (3, una corrida) | |
 | `exec` en `start.sh` | 1.375 MiB | ~330 ok/s, p95 > 5 s | 2 errores, 0 cobradas | apagado 0,6 s |
-| imagen slim | igual (en reposo, Podman) | no medido | no medido | imagen 440 MB |
+| imagen slim | igual (en reposo, Podman) | no medido | no medido | imagen 459 MB |
 | DEBUG en vez de INFO (al revés) | 1.382 MiB | ~200 ok/s | igual | +31% de CPU a 200 rps |
-| todas (`deploy/good`) | 90 MiB | 550 ok/s, p95 ≈ 240 ms | 0 errores, 0 cobradas | imagen 377 MB, arranque 0,9 s, apagado 0,4 s |
+| todas (`deploy/good`) | 90 MiB | 550 ok/s, p95 ≈ 240 ms | 0 errores, 0 cobradas | imagen 392 MB, arranque 0,9 s, apagado 0,4 s |
 
 Sobre ~650 rps la buena también cae, y queda peor que la mala: con el mismo readiness probe (timeout de 1 s), los de la buena fallan por la sobrecarga y Kubernetes saca sus pods del Service, mientras la mala sigue lista (`make stress`: ~170 contra ~250 rps servidos).
 
@@ -100,11 +125,11 @@ Lecciones que sí requieren cambiar el código, medidas con `benchmarks/code/run
 |---|---|
 | `async def` + `requests` a un servicio de ~150 ms, 100 rps | ~95% de errores: el event loop bloqueado no acepta conexiones (en macOS se ven como *connection reset*; en Linux, como timeouts) |
 | `def` + `requests`, 200 rps | 0% de errores, p95 ≈ 222 ms |
-| `def` + `requests`, 400 rps | sin errores, pero p95 ≈ 3,9 s y ~7.200 iteraciones descartadas |
+| `def` + `requests`, 400 rps | sin errores, pero p95 ≈ 3,9 s y ~7.500 iteraciones descartadas |
 | el mismo `def`, subiendo el threadpool de AnyIO de 40 a 200 hilos, 400 rps | 0% de errores, p95 ≈ 219 ms: el límite eran los 40 hilos |
 | `async def` + `httpx.AsyncClient`, 400 rps | 0% de errores, p95 ≈ 221 ms |
-| `log.debug(f"... {json.dumps(catalogo)}")` con DEBUG desactivado | 463 contra 934 rps sin logs (−50%), sin escribir un solo byte |
-| `log.info` con el payload completo | −3% de throughput, pero 30 MB de log en 15 s |
+| `log.debug(f"... {json.dumps(catalogo)}")` con DEBUG desactivado | 484 contra 956 rps sin logs (−49%), sin escribir un solo byte |
+| `log.info` con el payload completo | −7% de throughput, y 29 MB de log en 15 s |
 
 Estos casos usan apps pequeñas propias (`benchmarks/code/`), sus propios scripts de k6 y un servicio lento de ~150 ms (`slow_service.py`): no usan PostgreSQL ni la mezcla de carga de `k6/test.js`, así que el cambio de la base no los afecta.
 
@@ -120,7 +145,8 @@ Comandos desde la raíz del repo. Los de GKE necesitan el cluster arriba (`make 
 | Misma tabla, filas "ninguna" y "todas": memoria por pod | `make load RATE=200 DURATION=90s`, luego `benchmarks/gke/resources.sh` |
 | Misma tabla, pico de 550 rps | `make load RATE=550 DURATION=3m`, luego `benchmarks/gke/watch.sh 7` |
 | Misma tabla, columna "Por deploy" | `benchmarks/gke/charges.sh rollout` |
-| Imagen, arranque y apagado por variante (Podman) | `benchmarks/gke/local-ablation.sh` |
+| Imagen, arranque, memoria y apagado por variante, incluida `--preload` (Podman) | `benchmarks/gke/local-ablation.sh` |
+| Tabla "Imagen": paquetes, vulnerabilidades, reconstrucción y capas nuevas | `benchmarks/image.sh` |
 | Punto de quiebre sobre ~650 rps | `make stress`, luego `benchmarks/gke/watch.sh` |
 | "Cuántos procesos por pod" | `benchmarks/gke/build.sh && benchmarks/gke/parallel.sh` |
 | Tamaños de los pools de la biblioteca estándar | `benchmarks/gke/pools.sh` |

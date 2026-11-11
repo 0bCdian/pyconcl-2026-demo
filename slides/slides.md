@@ -31,7 +31,7 @@ exportFilename: misma-app-dos-resultados-distintos
       { label: 'Memoria por pod', a: '1.375 MiB', b: '90 MiB' },
       { label: 'Workers por pod', a: '17', b: '1' },
       { label: 'Cobradas sin orden, por deploy', a: '24–30', b: '0', loss: true },
-      { label: 'Imagen', a: '1,44 GB', b: '377 MB' },
+      { label: 'Imagen', a: '1,46 GB', b: '392 MB' },
     ]" origin="GKE · 2 pods de 1 CPU y 2 GiB por versión · imagen: Podman" />
     <Qr target="arena" label="Escanea y compra" :size="124" />
   </div>
@@ -314,13 +314,14 @@ Hadolint revisa la forma del CMD, no el exec dentro del script.
   <div class="evidencia apilado">
     <div class="fila">
       <div class="pesos">
-        <div class="peso"><span class="barra" style="--w: 100%"></span><p><strong class="num">1,44 GB</strong> <code>python:3.13</code> y pip</p></div>
-        <div class="peso"><span class="barra" style="--w: 30.6%"></span><p><strong class="num">440 MB</strong> solo con <code>-slim</code></p></div>
-        <div class="peso"><span class="barra" style="--w: 26.2%"></span><p><strong class="num">377 MB</strong> slim, dos etapas y uv</p></div>
+        <div class="peso"><span class="barra" style="--w: 100%"></span><p><strong class="num">1,46 GB</strong> <code>python:3.13</code> y pip</p></div>
+        <div class="peso"><span class="barra" style="--w: 31.4%"></span><p><strong class="num">459 MB</strong> solo con <code>-slim</code></p></div>
+        <div class="peso"><span class="barra" style="--w: 26.8%"></span><p><strong class="num">392 MB</strong> slim, dos etapas y uv</p></div>
       </div>
-      <Tabla title="Sin medir" unit="Imagen completa (A) contra slim (B)" :rows="[
-        { label: 'Rebuild tras cambiar una línea de app.py', a: '', b: '', pending: true },
-        { label: 'CVEs conocidas', a: '', b: '', pending: true },
+      <Tabla title="Además del peso" unit="Imagen completa (A) contra slim en dos etapas (B)" :rows="[
+        { label: 'Vulnerabilidades conocidas', a: '4.265', b: '212' },
+        { label: 'Capas nuevas por cada cambio de código', a: '311 MB', b: '0,01 MB' },
+        { label: 'Rebuild tras cambiar una línea', a: '14 s', b: '5 s' },
         { label: 'Pull en un nodo frío', a: '', b: '', pending: true },
       ]" />
     </div>
@@ -333,12 +334,13 @@ Hadolint revisa la forma del CMD, no el exec dentro del script.
       </div>
     </div>
   </div>
-  <footer><Origen>Podman · tamaño de la imagen y arranque</Origen><p class="muted">Se descarga en cada nodo nuevo.</p></footer>
+  <footer><Origen>Podman · benchmarks/image.sh</Origen><Origen>Trivy 0.76.2, base del 10 de noviembre</Origen></footer>
 </div>
 
 <!--
 (17:30) Tercer síntoma: la imagen. El cambio más barato es una palabra en el FROM; las dos etapas sacan las herramientas de build. El lockfile se copia antes que el código para que el cache de capas sirva.
-PENDIENTE: medir rebuild, CVEs y pull en nodo frío antes del 14 de noviembre. No dar esos números hasta que existan.
+16 vulnerabilidades críticas en A, ninguna en B. Cada cambio de código en A vuelve a subir y bajar 311 MB, porque el código se copia antes del pip install.
+PENDIENTE: medir el pull en un nodo frío con el cluster arriba. No dar ese número hasta que exista.
 -->
 
 ---
@@ -394,7 +396,7 @@ PENDIENTE: medir rebuild, CVEs y pull en nodo frío antes del 14 de noviembre. N
       { label: 'Memoria por pod', a: '1.375 MiB', b: '90 MiB' },
       { label: 'Cobradas sin orden, por deploy', a: '24–30', b: '0', loss: true },
       { label: 'Servidas en un pico de 550 rps', a: '~300/s', b: '550/s' },
-      { label: 'Imagen', a: '1,44 GB', b: '377 MB' },
+      { label: 'Imagen', a: '1,46 GB', b: '392 MB' },
     ]" origin="GKE · 2 pods de 1 CPU y 2 GiB por versión · imagen: Podman" />
     <Qr target="repo" label="Repo y checklist" :size="124" />
   </div>

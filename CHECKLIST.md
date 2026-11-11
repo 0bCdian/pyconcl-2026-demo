@@ -9,7 +9,7 @@ La imagen es lo que se descarga cada vez que escalas: chica, reproducible y que 
 - [ ] Base `slim` con versión fija, no la imagen completa. 📏
 - [ ] Si usas Alpine (musl), comprueba que todas tus dependencias publiquen wheels `musllinux`; si alguna no, se compila en el build.
 - [ ] Multi-stage: herramientas de build en una etapa, solo el entorno virtual en la imagen final.
-- [ ] Copia primero el lockfile, instala, y después copia el código.
+- [ ] Copia primero el lockfile, instala, y después copia el código: así un cambio de código no invalida la capa de dependencias. 📏
 - [ ] Bytecode precompilado: `UV_COMPILE_BYTECODE=1` con uv (pip ya lo hace). 📏
 - [ ] Usuario no-root con UID numérico (`USER 1000`): Kubernetes no puede verificar `runAsNonRoot` con un nombre.
 - [ ] `.dockerignore` con `.git`, `.venv` y `.env`.
