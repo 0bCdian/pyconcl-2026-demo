@@ -56,6 +56,11 @@ resource "google_container_cluster" "demo" {
     oauth_scopes    = ["https://www.googleapis.com/auth/cloud-platform"]
   }
 
+  # Once the default pool is removed the API reports another pool's node_config here, and any difference would replace the cluster.
+  lifecycle {
+    ignore_changes = [node_config]
+  }
+
   depends_on = [google_project_iam_member.nodes_default_role]
 }
 
