@@ -2,6 +2,7 @@
 # "Por deploy" column: per version, charges in the payments ledger vs orders and client errors seen by the arena, around an event.
 # Usage: charges.sh none|rollout [orders per second per side, default 200]
 cd "$(dirname "$0")/../.."
+. benchmarks/gke/common.sh
 EVENT=${1:?none|rollout} RATE=${2:-200}
 TOKEN=${TOKEN:-$(kubectl -n demo logs deploy/arena | grep -m1 -o 'token=[^ ]*' | cut -d= -f2)}
 kubectl -n demo port-forward svc/arena 8081:80 >/dev/null 2>&1 & PF1=$!
@@ -17,10 +18,10 @@ echo "== $EVENT at $(date +%T), $RATE orders/s per side"
 case $EVENT in
 none) sleep 60 ;;
 rollout)
-  make rollout >/dev/null
+  make rollout >/dev/null || exit 1
   for side in bad good; do
-    kubectl -n demo rollout status deploy/$side --timeout=300s >/dev/null
-    until [ "$(kubectl -n demo get pods -l app=$side --no-headers | wc -l)" -eq 2 ]; do sleep 1; done
+    rolled_out $side
+    wait_for_pods app=$side 2
   done
   sleep 15 ;;
 esac
