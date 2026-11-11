@@ -1,6 +1,6 @@
 #!/bin/bash
 # "Qué práctica pesa más" on GKE: bad image with one good practice at a time; memory at 200 rps, 550 rps peak, charges per deploy.
-# Usage: ablation.sh [workers1 cpucount1 exec debug]   (run build.sh first; bad and good must be deployed with `make deploy`)
+# Usage: ablation.sh [workers1 cpucount1 exec debug workers1-exec]   (run build.sh first; bad and good must be deployed with `make deploy`)
 cd "$(dirname "$0")/../.."
 REPO=$(tofu -chdir=infra output -raw registry)
 settle() {
@@ -12,7 +12,7 @@ variants=${*:-workers1 cpucount1 exec debug}
 for variant in $variants; do
   echo "######## $variant"
   case $variant in
-  workers1|exec) kubectl -n demo set image deploy/bad bad=$REPO/bad-$variant:latest >/dev/null ;;
+  workers1|exec|workers1-exec) kubectl -n demo set image deploy/bad bad=$REPO/bad-$variant:latest >/dev/null ;;
   cpucount1) kubectl -n demo set env deploy/bad PYTHON_CPU_COUNT=1 >/dev/null ;;
   debug) kubectl -n demo set env deploy/bad LOG_LEVEL=DEBUG >/dev/null ;;
   esac
