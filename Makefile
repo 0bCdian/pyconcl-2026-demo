@@ -20,7 +20,7 @@ up:
 	$(MAKE) kubeconfig images monitoring cnpg deploy
 
 down:
-	-$(MAKE) kubeconfig && kubectl delete namespace demo --ignore-not-found
+	-$(MAKE) kubeconfig && kubectl delete namespace demo --ignore-not-found && kubectl wait --for=delete pv --all --timeout=300s
 	$(TOFU) apply -var stage=off
 
 kubeconfig:
