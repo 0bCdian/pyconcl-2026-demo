@@ -1,0 +1,25 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: demo
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.11-minimal-trixie
+  postgresql:
+    parameters:
+      max_connections: "1000"
+  bootstrap:
+    initdb:
+      database: shop
+      owner: shop
+      # The schema below runs as postgres: without this grant the shop role cannot use its own tables.
+      postInitApplicationSQL:
+        - alter default privileges in schema public grant all on tables to shop
+      postInitApplicationSQLRefs:
+        configMapRefs:
+          - {name: db-schema, key: schema.sql}
+  storage:
+    size: 10Gi
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
