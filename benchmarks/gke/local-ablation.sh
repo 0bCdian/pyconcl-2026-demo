@@ -1,6 +1,6 @@
 #!/bin/bash
-# Image size, startup to first 200 (3 tries), idle memory and shutdown time for each single-practice variant, in Podman.
-# Usage: local-ablation.sh   (needs podman)
+# Image size, startup to first 200 (3 tries), memory idle and after load, and shutdown time for each single-practice variant, in Podman.
+# Usage: local-ablation.sh [images...]   (needs podman and k6)
 set -eu
 cd "$(dirname "$0")/../.."
 C=podman
@@ -8,7 +8,7 @@ $C build -q -t bad -f deploy/bad/Dockerfile . >/dev/null
 $C build -q -t good -f deploy/good/Dockerfile . >/dev/null
 $C build -q -t good-nobc --build-arg UV_COMPILE_BYTECODE=0 -f deploy/good/Dockerfile . >/dev/null
 sed 's/^FROM python:3.13$/FROM python:3.13-slim/' deploy/bad/Dockerfile | $C build -q -t bad-slim -f - . >/dev/null
-for variant in workers1 exec; do
+for variant in workers1 preload exec; do
   $C build -q -t bad-$variant --build-arg BASE=localhost/bad -f benchmarks/gke/variants/$variant.Dockerfile benchmarks/gke/variants >/dev/null
 done
 $C build -q -t payments payments >/dev/null
@@ -28,14 +28,16 @@ start() {
 }
 wait_ready() { until curl -sf -m 1 localhost:8000/health >/dev/null; do sleep 0.05; done; }
 
-for img in bad bad-slim bad-workers1 bad-exec good good-nobc; do
+for img in ${*:-bad bad-slim bad-workers1 bad-preload bad-exec good good-nobc}; do
   size=$($C image inspect "localhost/$img" --format '{{.Size}}' | awk '{printf "%.0f MB", $1/1e6}')
   times=""
   for _ in 1 2 3; do t=$(now); start "localhost/$img"; wait_ready; times="$times $(since "$t")s"; done
   sleep 5
   mem=$($C stats --no-stream --format '{{.MemUsage}}' shop | cut -d/ -f1)
+  load=$(TARGETS=shop=http://127.0.0.1:8000 RATE=100 DURATION=60s k6 run -q k6/test.js 2>&1 | awk '/http_req_failed/{print $2}')
+  loaded=$($C stats --no-stream --format '{{.MemUsage}}' shop | cut -d/ -f1)
   t=$(now); $C stop -t 30 shop >/dev/null
   stop="$(since "$t")s exit $($C inspect shop --format '{{.State.ExitCode}}')"
-  echo "$img | $size | arranque$times | memoria en reposo $mem | apagado $stop"
+  echo "$img | $size | arranque$times | memoria en reposo $mem | tras 60 s a 100 rps $loaded (errores $load) | apagado $stop"
 done
 $C rm -f -t0 shop payments postgres >/dev/null

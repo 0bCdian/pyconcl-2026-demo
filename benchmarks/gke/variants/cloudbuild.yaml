@@ -6,6 +6,10 @@ steps:
     name: gcr.io/cloud-builders/docker
     args: [build, -f, benchmarks/gke/variants/workers1.Dockerfile, -t, "${_REPO}/bad-workers1:latest", benchmarks/gke/variants]
     waitFor: [bad]
+  - id: preload
+    name: gcr.io/cloud-builders/docker
+    args: [build, -f, benchmarks/gke/variants/preload.Dockerfile, -t, "${_REPO}/bad-preload:latest", benchmarks/gke/variants]
+    waitFor: [bad]
   - id: exec
     name: gcr.io/cloud-builders/docker
     args: [build, -f, benchmarks/gke/variants/exec.Dockerfile, -t, "${_REPO}/bad-exec:latest", benchmarks/gke/variants]
@@ -21,6 +25,7 @@ steps:
     waitFor: ["-"]
 images:
   - "${_REPO}/bad-workers1:latest"
+  - "${_REPO}/bad-preload:latest"
   - "${_REPO}/bad-exec:latest"
   - "${_REPO}/bad-cgroup:latest"
   - "${_REPO}/bad-slim:latest"
