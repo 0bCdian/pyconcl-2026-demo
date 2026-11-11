@@ -7,7 +7,7 @@ SPOT     ?= false
 TOFU = tofu -chdir=infra
 out  = $$($(TOFU) output -raw $(1))
 
-.PHONY: init plan up down kubeconfig images monitoring deploy load stress startup grafana arena proxy rollout status lint local local-load local-down
+.PHONY: init plan up down kubeconfig images monitoring cnpg deploy load stress startup grafana arena proxy rollout status lint local local-load local-down
 
 init:
 	$(TOFU) init
@@ -17,9 +17,10 @@ plan:
 
 up:
 	$(TOFU) apply -var stage=on -var spot=$(SPOT)
-	$(MAKE) kubeconfig images monitoring deploy
+	$(MAKE) kubeconfig images monitoring cnpg deploy
 
 down:
+	-$(MAKE) kubeconfig && kubectl delete namespace demo --ignore-not-found
 	$(TOFU) apply -var stage=off
 
 kubeconfig:
@@ -36,6 +37,10 @@ monitoring:
 		-n monitoring --create-namespace -f k8s/monitoring-values.yaml --wait
 	kubectl -n monitoring create configmap shop-dashboard --from-file=shop.json=k8s/dashboard.json --dry-run=client -o yaml \
 		| kubectl label --local -f - grafana_dashboard=1 -o yaml | kubectl apply -f -
+
+cnpg:
+	helm repo add cnpg https://cloudnative-pg.github.io/charts --force-update
+	helm upgrade --install cnpg cnpg/cloudnative-pg --version 0.29.1 -n cnpg-system --create-namespace --wait
 
 deploy:
 	kubectl create namespace demo --dry-run=client -o yaml | kubectl apply -f -
