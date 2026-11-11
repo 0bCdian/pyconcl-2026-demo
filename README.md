@@ -20,6 +20,8 @@ infra/bootstrap/  para empezar desde cero: proyecto, facturación, APIs, bucket 
 benchmarks/   los scripts que reproducen cada número de la charla (ver "Reproducir cada número")
 ```
 
+La arquitectura, el camino de una orden y las tecnologías usadas están en [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Resultados
 
 > **Re-medición pendiente en GKE.** Las tablas de Podman ("Resultados" e "Imagen") se midieron el 11 de noviembre de 2026, con PostgreSQL y la mezcla de carga actual (30% órdenes). Las de GKE ("Qué práctica pesa más" y "Cuántos procesos por pod") son anteriores: sin PostgreSQL y con 70% órdenes. Se volverán a medir.
