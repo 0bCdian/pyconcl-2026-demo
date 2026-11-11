@@ -47,3 +47,14 @@ variable "tools_machine_type" {
   type    = string
   default = "e2-standard-4"
 }
+
+variable "vm_ssh_user" {
+  type    = string
+  default = "demo"
+}
+
+variable "vm_ssh_public_key_file" {
+  description = "Public key allowed to log in to the VM through IAP."
+  type        = string
+  default     = "~/.ssh/pycon-vm.pub"
+}

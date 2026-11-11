@@ -1,0 +1,14 @@
+[Unit]
+Description=Shop, bad version, directly on the VM
+After=network-online.target
+
+[Service]
+DynamicUser=yes
+WorkingDirectory=/opt/shop
+EnvironmentFile=/opt/shop/env
+Environment=PATH=/opt/shop/venv/bin:/usr/bin:/bin
+ExecStart=/opt/shop/start.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
