@@ -20,7 +20,8 @@ up:
 	$(MAKE) kubeconfig images monitoring cnpg deploy
 
 down:
-	-$(MAKE) kubeconfig && kubectl delete namespace demo --ignore-not-found && kubectl wait --for=delete pv --all --timeout=300s
+	-gcloud container clusters get-credentials $(call out,cluster_name) --zone $(call out,zone) --project $(call out,project_id) \
+		&& kubectl delete namespace demo --ignore-not-found && kubectl wait --for=delete pv --all --timeout=300s
 	$(TOFU) apply -var stage=off
 
 kubeconfig:
