@@ -1,6 +1,6 @@
 #!/bin/bash
-# Per-version offered/ok/err/p95/CPU/throttling every 30 s during a k6 run: the 550 rps peak (7 samples) and the stress knee (22 samples).
-# Usage: watch.sh [samples=22]
+# Per-version offered/ok/err/p95/CPU/throttling every 30 s during a k6 run: the 550 rps peak.
+# Usage: watch.sh [samples=7]
 kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 >/dev/null 2>&1 & PF=$!
 trap 'kill $PF' EXIT
 sleep 3
@@ -9,7 +9,7 @@ q() {
     python3 -c "import json,sys; r=json.load(sys.stdin)['data']['result']; print(' '.join(f\"{list(x['metric'].values())[0] if x['metric'] else 'all'}={float(x['value'][1]):.${2:-0}f}\" for x in sorted(r, key=lambda x: str(x['metric']))))"
 }
 S='namespace="demo", container=~"bad|good"'
-for i in $(seq 1 "${1:-22}"); do
+for i in $(seq 1 "${1:-7}"); do
   echo "$(date +%T) offered=$(q 'sum by (scenario) (rate(k6_http_reqs_total{scenario=~"bad|good"}[30s])) + sum by (scenario) (rate(k6_dropped_iterations_total{scenario=~"bad|good"}[30s]))')"
   echo "   ok/s      $(q 'sum by (scenario) (rate(k6_http_reqs_total{scenario=~"bad|good", expected_response="true"}[30s]))')"
   echo "   err/s     $(q 'sum by (scenario) (rate(k6_http_reqs_total{scenario=~"bad|good", expected_response="false"}[30s]))')"

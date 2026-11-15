@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds and pushes the single-practice variants of the bad image (bad-workers1, bad-exec, bad-slim, bad-cgroup) used by ablation.sh and parallel.sh.
+# Builds and pushes the single-practice variants of the bad image (bad-workers1, bad-exec, bad-slim) used by ablation.sh.
 # Usage: benchmarks/gke/build.sh
 set -euo pipefail
 cd "$(dirname "$0")/../.."

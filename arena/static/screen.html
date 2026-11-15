@@ -17,10 +17,6 @@
   .mono { font-family: "JetBrains Mono Variable", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 3vw; }
   h1 { margin: 0; font-size: 6.4vh; font-weight: 900; line-height: .94; font-variation-settings: "wdth" 72; text-transform: uppercase; }
-  .join { display: flex; align-items: center; gap: 2vw; font-size: 2.8vh; font-weight: 600; text-align: right; }
-  .join p { margin: 0; white-space: nowrap; }
-  .join strong { font-weight: 900; font-size: 3.6vh; font-variation-settings: "wdth" 75; }
-  .join img { height: 14vh; border: .4vh solid var(--ink); display: block; }
   main { display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; min-height: 0; }
   .tabla { border: .45vh solid var(--ink); padding: 1.6vh 2vw; display: grid; grid-template-rows: auto auto 1fr auto; min-height: 0; overflow: hidden; }
   .tabla h2 { margin: 0 0 1vh; font-size: 5.5vh; font-weight: 900; line-height: 1; font-variation-settings: "wdth" 75; text-transform: uppercase; }
@@ -44,10 +40,6 @@
 <body>
 <header>
   <h1>Misma app,<br>dos resultados distintos</h1>
-  <div class="join">
-    <p>Escanea y toca <strong>COMPRAR</strong><br>cada compra va igual a A y B</p>
-    <img src="qr.svg" alt="Código QR para participar">
-  </div>
 </header>
 
 <main id="panels"></main>

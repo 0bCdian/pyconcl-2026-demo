@@ -1,4 +1,4 @@
-"""Checks that a tap sends the identical order to both sides and that stats count ok/lost."""
+"""Checks that the arena sends the identical order to both sides and that stats count ok/lost."""
 
 import asyncio
 import json
@@ -18,10 +18,9 @@ def test_same_order_to_both_sides_and_stats_count():
         return httpx.AsyncClient(base_url="http://shop", transport=httpx.MockTransport(handler))
 
     arena.clients.update(A=shop("A", 500), B=shop("B", 200))
-    results = asyncio.run(arena.play(product_id=7))
+    results = asyncio.run(arena.play())
 
     assert seen["A"] == seen["B"] and len(seen["A"]) == 1
-    assert seen["A"][0]["items"] == [{"product_id": 7, "quantity": 1}]
     assert results["A"]["ok"] is False and results["B"]["order_id"] == "order-B"
     stats = arena.stats()
     assert (stats["A"]["ok"], stats["A"]["lost"]) == (0, 1)

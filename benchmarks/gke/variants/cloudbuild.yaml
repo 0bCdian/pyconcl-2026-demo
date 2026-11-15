@@ -18,10 +18,6 @@ steps:
     name: gcr.io/cloud-builders/docker
     args: [build, -f, benchmarks/gke/variants/workers1-exec.Dockerfile, -t, "${_REPO}/bad-workers1-exec:latest", benchmarks/gke/variants]
     waitFor: [bad]
-  - id: cgroup
-    name: gcr.io/cloud-builders/docker
-    args: [build, -f, benchmarks/gke/variants/cgroup.Dockerfile, -t, "${_REPO}/bad-cgroup:latest", benchmarks/gke/variants]
-    waitFor: [bad]
   - id: slim
     name: gcr.io/cloud-builders/docker
     entrypoint: bash
@@ -32,7 +28,6 @@ images:
   - "${_REPO}/bad-preload:latest"
   - "${_REPO}/bad-exec:latest"
   - "${_REPO}/bad-workers1-exec:latest"
-  - "${_REPO}/bad-cgroup:latest"
   - "${_REPO}/bad-slim:latest"
 options:
   logging: CLOUD_LOGGING_ONLY

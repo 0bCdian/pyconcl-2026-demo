@@ -37,11 +37,9 @@ up)
   run lb-good $CADDY caddy reverse-proxy --from :80 --to good-1:8000 --to good-2:8000
 
   token=${ADMIN_TOKEN:-$(openssl rand -hex 12)}
-  public_url=${PUBLIC_URL:-http://$(ipconfig getifaddr en0 || echo localhost):8080}
   run arena -p 8080:8000 -e A_URL=http://lb-bad -e B_URL=http://lb-good -e PAYMENTS_URL=http://payments:8000 \
-    -e PUBLIC_URL="$public_url" -e ADMIN_TOKEN="$token" pycon-arena
+    -e ADMIN_TOKEN="$token" pycon-arena
   echo "Pantalla: http://localhost:8080/screen?token=$token"
-  echo "Celular:  $public_url"
   ;;
 load)
   podman run --rm --network $NET -v "$PWD/k6:/scripts:ro" \

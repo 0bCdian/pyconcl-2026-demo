@@ -1,7 +1,6 @@
-"""Arena: sends every tap as the same order to two versions of the shop and streams which ones went through."""
+"""Arena: sends the same order to two versions of the shop and streams which ones went through."""
 
 import asyncio
-import io
 import json
 import logging
 import os
@@ -14,20 +13,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
-import segno
-from fastapi import FastAPI, Header, HTTPException, Request
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi import FastAPI, Header, HTTPException
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 SIDES = {side: os.environ.get(f"{side}_URL", url) for side, url in [("A", "http://bad"), ("B", "http://good")]}
-TAP_TIMEOUT = float(os.environ.get("TAP_TIMEOUT", "2"))
-DEVICE_RATE = float(os.environ.get("DEVICE_RATE", "5"))
-MAX_RATE = float(os.environ.get("MAX_RATE", "300"))
+REQUEST_TIMEOUT = float(os.environ.get("REQUEST_TIMEOUT", "2"))
 CATALOG_SIZE = int(os.environ.get("CATALOG_SIZE", "5000"))
 PAYMENTS_URL = os.environ.get("PAYMENTS_URL", "http://payments")
 SHOP_NAMES = {"A": os.environ.get("A_SHOP", "bad"), "B": os.environ.get("B_SHOP", "good")}
-PUBLIC_URL = os.environ.get("PUBLIC_URL")
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN") or secrets.token_urlsafe(16)
 STATIC = Path(__file__).parent / "static"
 
@@ -38,30 +33,12 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("arena")
 
 
-class TokenBucket:
-    def __init__(self, rate: float, burst: float):
-        self.rate, self.burst = rate, burst
-        self.tokens, self.updated = burst, time.monotonic()
-
-    def take(self) -> bool:
-        now = time.monotonic()
-        self.tokens = min(self.burst, self.tokens + (now - self.updated) * self.rate)
-        self.updated = now
-        if self.tokens < 1:
-            return False
-        self.tokens -= 1
-        return True
-
-
 state = {"round": 0, "autoplay": 0.0, "since": datetime.now(UTC)}
 recent = {side: deque() for side in SIDES}
 totals = {side: {"ok": 0, "lost": 0} for side in SIDES}
 in_flight = dict.fromkeys(SIDES, 0)
 reconciliation: dict[str, dict | None] = dict.fromkeys(SIDES)
-catalog: list[dict] = []
 subscribers: set[asyncio.Queue] = set()
-global_bucket = TokenBucket(MAX_RATE, MAX_RATE)
-device_buckets: dict[str, TokenBucket] = {}
 clients: dict[str, httpx.AsyncClient] = {}
 payments_client: httpx.AsyncClient
 
@@ -72,12 +49,6 @@ def random_order() -> dict:
         for _ in range(random.randint(1, 4))
     ]
     return {"customer_id": random.randrange(1_000_000), "items": items}
-
-
-def order_for(product_id: int | None) -> dict:
-    if product_id is None:
-        return random_order()
-    return {"customer_id": random.randrange(1_000_000), "items": [{"product_id": product_id, "quantity": 1}]}
 
 
 async def send(side: str, order: dict, round_: int) -> dict:
@@ -100,8 +71,8 @@ async def send(side: str, order: dict, round_: int) -> dict:
     return {"ok": ok, "ms": latency_ms, "order_id": order_id}
 
 
-async def play(product_id: int | None = None) -> dict:
-    order = order_for(product_id)
+async def play() -> dict:
+    order = random_order()
     results = await asyncio.gather(*(send(side, order, state["round"]) for side in SIDES))
     return dict(zip(SIDES, results))
 
@@ -140,28 +111,9 @@ def publish(message: dict) -> None:
 
 
 async def broadcast_forever() -> None:
-    ticks = 0
     while True:
         await asyncio.sleep(0.1)
         publish(snapshot())
-        ticks += 1
-        if ticks % 100 == 0:
-            idle = time.monotonic() - 60
-            for device in [d for d, b in device_buckets.items() if b.updated < idle]:
-                del device_buckets[device]
-
-
-async def load_catalog_forever() -> None:
-    while not catalog:
-        for side in ("B", "A"):
-            try:
-                response = await clients[side].get("/products", params={"size": 50})
-                response.raise_for_status()
-                catalog.extend(response.json())
-                return
-            except (httpx.HTTPError, ValueError):
-                continue
-        await asyncio.sleep(2)
 
 
 async def reconcile_forever() -> None:
@@ -194,14 +146,14 @@ async def lifespan(app: FastAPI):
     for side, url in SIDES.items():
         clients[side] = httpx.AsyncClient(
             base_url=url,
-            timeout=TAP_TIMEOUT,
+            timeout=REQUEST_TIMEOUT,
             limits=httpx.Limits(max_connections=None, max_keepalive_connections=200),
         )
     global payments_client
     payments_client = httpx.AsyncClient(base_url=PAYMENTS_URL, timeout=2)
     tasks = [
         asyncio.create_task(task())
-        for task in (broadcast_forever, autoplay_forever, load_catalog_forever, reconcile_forever)
+        for task in (broadcast_forever, autoplay_forever, reconcile_forever)
     ]
     log.info("screen: /screen?token=%s", ADMIN_TOKEN)
     yield
@@ -213,11 +165,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
-
-
-class Tap(BaseModel):
-    device: str = Field(min_length=8, max_length=64)
-    product_id: int | None = Field(None, ge=0)
 
 
 class Control(BaseModel):
@@ -235,27 +182,9 @@ async def current_stats():
     return stats()
 
 
-@app.get("/")
-async def play_page():
-    return FileResponse(STATIC / "play.html")
-
-
 @app.get("/screen")
 async def screen_page():
     return FileResponse(STATIC / "screen.html")
-
-
-@app.get("/qr.svg")
-async def qr(request: Request):
-    url = PUBLIC_URL or str(request.base_url)
-    svg = io.BytesIO()
-    segno.make(url, error="m").save(svg, kind="svg", scale=8, border=2, dark="#111111", light="#ffffff")
-    return Response(svg.getvalue(), media_type="image/svg+xml")
-
-
-@app.get("/catalog")
-async def products():
-    return catalog
 
 
 @app.get("/events")
@@ -272,16 +201,6 @@ async def events():
             subscribers.discard(queue)
 
     return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
-
-
-@app.post("/tap")
-async def tap(body: Tap):
-    bucket = device_buckets.setdefault(body.device, TokenBucket(DEVICE_RATE, DEVICE_RATE * 2))
-    if not bucket.take():
-        raise HTTPException(429, "slow down")
-    if not global_bucket.take():
-        raise HTTPException(429, "arena busy")
-    return {"results": await play(body.product_id)}
 
 
 @app.post("/admin")
