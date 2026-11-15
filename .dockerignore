@@ -1,8 +1,5 @@
-.git
+*
+!app/
+!deploy/
 **/.venv
 **/__pycache__
-k6
-k8s
-scripts
-benchmarks
-*.md
