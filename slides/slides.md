@@ -85,6 +85,44 @@ A es como en muchos tutoriales. B aplica las cinco cosas. Corren en GKE, 2 pods 
 ---
 
 <div class="bandas">
+  <h2>Mismo manifiesto, mismos recursos</h2>
+  <div class="evidencia dos">
+
+```yaml {2,7-8}
+name: bad
+image: …/bad
+replicas: 2
+terminationGracePeriodSeconds: 40
+resources:
+  requests: {cpu: "1", memory: 2Gi}
+  limits:   {cpu: "1", memory: 2Gi}
+readinessProbe: {httpGet: {path: /health}}
+preStop: {sleep: {seconds: 15}}
+```
+
+```yaml {2,7-8}
+name: good
+image: …/good
+replicas: 2
+terminationGracePeriodSeconds: 40
+resources:
+  requests: {cpu: "1", memory: 2Gi}
+  limits:   {cpu: "1", memory: 2Gi}
+readinessProbe: {httpGet: {path: /health}}
+preStop: {sleep: {seconds: 15}}
+```
+
+  </div>
+  <footer><Origen>k8s/demo.yaml · resumido</Origen><Origen>GKE · nodos n2-standard-8 idénticos, uno por versión</Origen></footer>
+</div>
+
+<!--
+(2:15) Las dos versiones corren con el mismo Deployment: 2 réplicas, 1 CPU y 2 GiB por pod, el mismo readiness probe, el mismo preStop y el mismo plazo de apagado. Cada versión en su propio nodo, de la misma máquina y la misma CPU. Lo único que cambia es la imagen.
+-->
+
+---
+
+<div class="bandas">
   <h2>1. ¿Cuántas CPUs ve tu app?</h2>
   <div class="evidencia apilado">
 
@@ -120,7 +158,6 @@ Solución: cuenta desde el límite. Un proceso por contenedor, o PYTHON_CPU_COUN
       { label: 'Memoria', a: '1.430 MiB', b: '95 MiB', loss: true },
       { label: 'Procesos', a: '18', b: '1' },
       { label: 'Conexiones a PostgreSQL', a: '170', b: '10' },
-      { label: 'Con límite de 200 MiB', a: 'OOMKilled', b: '0 errores', loss: true },
     ]" />
   </div>
   <footer><Origen>GKE · 11 y 15 nov · 3 corridas</Origen><Origen>docs.python.org/3/using/cmdline.html · PYTHON_CPU_COUNT</Origen></footer>
@@ -128,7 +165,32 @@ Solución: cuenta desde el límite. Un proceso por contenedor, o PYTHON_CPU_COUN
 
 <!--
 (5:00) Con la misma carga, A usa 1.430 MiB por pod y B 95. Cada worker carga la app entera y abre su propio pool de conexiones: 170 conexiones a la base por pod contra 10.
-Las dos tienen el mismo límite (2 GiB). Si se lo bajamos a 200 MiB a las dos: A no llega a arrancar, el kernel la mata por memoria (OOMKilled) una y otra vez, y a 200 rps falla el 100% de lo que le llega; B sigue en 94 MiB con 0 errores. En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: en local, tres copias de A agotaron max_connections de PostgreSQL.
+Las dos tienen el mismo límite, 2 GiB: a A le alcanza, pero gasta 15 veces más. En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: en local, tres copias de A agotaron max_connections de PostgreSQL.
+-->
+
+---
+
+<div class="bandas">
+  <h2>1. ¿Y si igualamos la memoria a lo que usa B?</h2>
+  <div class="evidencia dos">
+
+```yaml
+limits: {cpu: "1", memory: 200Mi}
+```
+
+  <Tabla title="Límite de 200 MiB para las dos" unit="200 rps por versión" :rows="[
+    { label: '¿Arranca?', a: 'No: OOMKilled', b: 'Sí', loss: true },
+    { label: 'Estado', a: 'CrashLoopBackOff', b: 'Running' },
+    { label: 'Memoria usada', a: '—', b: '94 MiB' },
+    { label: 'Errores en 90 s', a: '14.100', b: '0', loss: true },
+  ]" />
+  </div>
+  <footer><Origen>GKE · 15 nov · 1 corrida</Origen><Origen>kubernetes.io · OOMKilled al pasar el límite de memoria</Origen></footer>
+</div>
+
+<!--
+(6:00) ¿Y si a A le damos lo mismo que necesita B? 200 MiB para las dos. A no llega a arrancar: mientras levanta sus workers pasa el límite, el kernel la mata (OOMKilled, exit 137) y Kubernetes la reinicia en bucle. Alcanza a levantar 13 de 17 workers. B sigue en 94 MiB con cero errores.
+Detalle bueno para contar: al cambiar el límite, Kubernetes no tiró el servicio. El pod nuevo de A nunca quedó listo, así que el rollout se trabó y dejó corriendo los viejos. En un primer deploy, sin versión anterior, A habría quedado caída.
 -->
 
 ---
@@ -141,13 +203,14 @@ Las dos tienen el mismo límite (2 GiB). Si se lo bajamos a 200 MiB a las dos: A
       { label: 'Servidas', a: '~300/s', b: '550/s', loss: true },
       { label: 'p95', a: '> 5 s', b: '≈ 250 ms' },
       { label: 'CPU frenada (throttling)', a: '100%', b: '0%' },
+      { label: 'CPU por request servida', a: '5,5 ms', b: '2,6 ms' },
     ]" />
   </div>
   <footer><Origen>GKE · 15 nov · nodos n2 idénticos</Origen><Origen>kubernetes.io/docs/concepts/configuration/manage-resources-containers</Origen></footer>
 </div>
 
 <!--
-(6:30) En el peak, los 17 workers de A se pelean una sola CPU: el kernel los frena el 100% del tiempo, A cae a ~300 requests por segundo y el p95 pasa los 5 s. B sirve los 550 con p95 de 250 ms.
+(7:30) Con carga normal, cada request cuesta casi lo mismo en A y en B: 3,2 contra 2,9 ms de CPU. En el peak no. Los 17 workers de A compiten por 1 CPU: el kernel salta de uno a otro, y la cuota de CPU (100 ms cada 100 ms) se agota antes de cada período, así que el contenedor entero queda congelado hasta el siguiente: throttling en el 100% de los períodos. Las requests se encolan, llegan al timeout de 5 s y esa CPU se pierde: A gasta 5,5 ms por request que sí sale, B 2,6. A cae a ~300 de 550; B sirve las 550 con p95 de 250 ms, usando 1,4 de sus 2 CPUs.
 -->
 
 ---
