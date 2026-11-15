@@ -6,3 +6,4 @@ backend.tf
 *.tfstate.*
 *.tfplan
 tfplan
+.terraform-*/
