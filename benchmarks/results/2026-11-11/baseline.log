@@ -9,7 +9,7 @@
   reinicios              bad=2.000  good=6.000
   oom events 5m          bad=0.000  good=0.000
   payments cpu           payments=0.307
-/private/tmp/claude-501/-Users-user/48b397db-8694-46bc-bc56-7b90b3adf8cc/scratchpad/baseline.sh: line 4: 59281 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+benchmarks/gke/baseline.sh: line 4: 59281 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
 13:18:20 offered=bad=546 good=550
    ok/s      bad=236 good=550
    err/s     bad=151
@@ -84,7 +84,7 @@
   reinicios              bad=0.000  good=0.000
   oom events 5m          bad=0.000  good=0.000
   payments cpu           payments=0.288
-/private/tmp/claude-501/-Users-user/48b397db-8694-46bc-bc56-7b90b3adf8cc/scratchpad/baseline.sh: line 4: 60236 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+benchmarks/gke/baseline.sh: line 4: 60236 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
 13:27:57 offered=bad=545
    ok/s      bad=303 good=550
    err/s     bad=138
@@ -159,7 +159,7 @@
   reinicios              bad=0.000  good=0.000
   oom events 5m          bad=0.000  good=0.000
   payments cpu           payments=0.308
-/private/tmp/claude-501/-Users-user/48b397db-8694-46bc-bc56-7b90b3adf8cc/scratchpad/baseline.sh: line 4: 60971 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
+benchmarks/gke/baseline.sh: line 4: 60971 Terminated: 15          kubectl -n monitoring port-forward svc/kps-kube-prometheus-stack-prometheus 9090:9090 > /dev/null 2>&1
 13:37:32 offered=bad=553
    ok/s      bad=284 good=549
    err/s     bad=150
