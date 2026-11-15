@@ -105,9 +105,9 @@ workers = multiprocessing.cpu_count() * 2 + 1   # gunicorn.org/guides/docker
 </div>
 
 <!--
-(2:30) Situación: la guía de Docker de gunicorn recomienda esta línea. En una VM es correcta: 8 núcleos, 17 workers, y con la misma config A sirvió 550 rps sin errores.
+(3:00) Situación: la guía de Docker de gunicorn recomienda esta línea. En una VM es correcta: 8 núcleos, 17 workers, y con la misma config A sirvió 550 rps sin errores.
 Problema: os.cpu_count() ve la máquina, no el límite del contenedor. En el pod con 1 CPU salen 17 workers para 1 CPU; en Cloud Run vimos 6, 6 y 5 en tres ejecuciones.
-Solución: cuenta desde el límite. Un proceso por contenedor, o PYTHON_CPU_COUNT=1 desde Python 3.13.
+Solución: cuenta desde el límite. Un proceso por contenedor, o PYTHON_CPU_COUNT=1 desde Python 3.13. Aislado: con solo ese cambio (1 worker), A baja a 112 MiB y sirve los 550 rps.
 -->
 
 ---
@@ -126,7 +126,7 @@ Solución: cuenta desde el límite. Un proceso por contenedor, o PYTHON_CPU_COUN
 </div>
 
 <!--
-(4:00) Con la misma carga, A usa 1.430 MiB por pod y B 95. Cada worker carga la app entera y abre su propio pool de conexiones: 170 conexiones a la base por pod contra 10.
+(5:00) Con la misma carga, A usa 1.430 MiB por pod y B 95. Cada worker carga la app entera y abre su propio pool de conexiones: 170 conexiones a la base por pod contra 10.
 En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: en local, tres copias de A agotaron max_connections de PostgreSQL.
 -->
 
@@ -146,7 +146,7 @@ En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: e
 </div>
 
 <!--
-(5:30) En el pico, los 17 workers de A se pelean una sola CPU: el kernel los frena el 100% del tiempo, A cae a ~300 requests por segundo y el p95 pasa los 5 s. B sirve los 550 con p95 de 250 ms.
+(6:30) En el pico, los 17 workers de A se pelean una sola CPU: el kernel los frena el 100% del tiempo, A cae a ~300 requests por segundo y el p95 pasa los 5 s. B sirve los 550 con p95 de 250 ms.
 -->
 
 ---
@@ -157,16 +157,15 @@ En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: e
     <img class="grafico" src="/charts/ramp.svg" alt="Rampa de carga: 2 pods de 1 proceso contra 1 pod de 2 workers">
     <div class="lineas">
       <p>Mismas 2 CPUs: <strong>715 contra 692 rps</strong>, <strong>269 contra 297 MiB</strong>. En rendimiento, empate.</p>
-      <p>La diferencia es operativa. Kubernetes trabaja por pod:</p>
-      <p>· el autoscaler agrega pods<br>· el readiness probe mira el pod, no cada worker<br>· un rollout reemplaza pods</p>
+      <p>La diferencia es operativa: Kubernetes escala, revisa y despliega por pod.</p>
     </div>
   </div>
   <footer><Origen>GKE · 15 nov · rampa de 100 a 1.000 rps · 1 corrida</Origen></footer>
 </div>
 
 <!--
-(7:00) Si necesito más capacidad, ¿más workers o más réplicas? Medimos las mismas 2 CPUs: 2 pods de 1 proceso contra 1 pod con --workers 2. Empate: 715 contra 692 rps y memoria parecida.
-Entonces, ¿por qué réplicas? Porque la plataforma ya hace el trabajo del process manager: escala pods, revisa la salud de cada pod y despliega pod por pod. Con varios workers dentro, un worker colgado no lo ve nadie, y el autoscaler no tiene con qué escalar fino.
+(8:30) Si necesito más capacidad, ¿más workers o más réplicas? Medimos las mismas 2 CPUs: 2 pods de 1 proceso contra 1 pod con --workers 2. Empate: 715 contra 692 rps y memoria parecida.
+Entonces, ¿por qué réplicas? Porque la plataforma ya hace el trabajo del process manager: el autoscaler agrega pods, y los requests de CPU, el readiness, los rollouts y las caídas funcionan por pod.
 -->
 
 ---
@@ -194,7 +193,7 @@ gunicorn -c gunicorn_conf.py app:app
 </div>
 
 <!--
-(8:30) Situación: CMD en forma shell y un script que lanza gunicorn sin exec. Muy común.
+(11:30) Situación: CMD en forma shell y un script que lanza gunicorn sin exec. Muy común.
 Problema: el proceso 1 es sh, que no reenvía señales. En cada deploy o escalado hacia abajo, la plataforma manda SIGTERM, nadie lo atiende, espera su plazo y mata con SIGKILL. Lo que estaba en curso se pierde.
 -->
 
@@ -216,16 +215,16 @@ exec gunicorn -c gunicorn_conf.py app:app
 </div>
     <Tabla title="Apagar y desplegar" unit="A contra B" :rows="[
       { label: 'Apagado', a: '10,3 s · exit 137', b: '0,5 s · exit 0' },
-      { label: 'Rollout de 2 réplicas', a: '43–47 s', b: '8–12 s' },
       { label: 'Cobradas sin orden, por deploy', a: '26–30', b: '0', loss: true },
+      { label: 'Solo el exec, 1 worker en los dos', a: '26', b: '0' },
     ]" />
   </div>
-  <footer><Origen>Apagado: Podman · 15 nov</Origen><Origen>Rollout y cobros: GKE · 11 y 15 nov · 3 corridas</Origen></footer>
+  <footer><Origen>Apagado: Podman · 15 nov</Origen><Origen>Cobros: GKE · 11 nov · 3 corridas; solo exec: 1 corrida</Origen></footer>
 </div>
 
 <!--
-(10:00) Solución: CMD en forma exec, o exec en el script. Ahora el servidor es el proceso 1 y recibe SIGTERM: termina lo que tiene y sale.
-Apagado de 10 s con SIGKILL a medio segundo. El rollout de 2 réplicas baja de 45 a 10 s. Y con 200 órdenes por segundo, cada deploy de A deja 26 a 30 clientes cobrados sin orden; B, cero.
+(13:00) Solución: CMD en forma exec, o exec en el script. Ahora el servidor es el proceso 1 y recibe SIGTERM: termina lo que tiene y sale.
+Apagado de 10 s con SIGKILL a medio segundo. Con 200 órdenes por segundo, cada deploy de A deja 26 a 30 clientes cobrados sin orden; B, cero. Y es el exec: con 1 worker en las dos versiones, sin exec quedan 26; con exec, 0.
 -->
 
 ---
@@ -253,7 +252,7 @@ COPY app/app.py ./
 </div>
 
 <!--
-(11:30) Situación: A copia todo el código y después instala. Problema: cambiar una línea de app.py invalida la capa de pip install y reinstala todo.
+(15:30) Situación: A copia todo el código y después instala. Problema: cambiar una línea de app.py invalida la capa de pip install y reinstala todo.
 Solución: copiar solo el lockfile, instalar, y dejar el código para la última capa. Lo que cambia seguido va al final.
 -->
 
@@ -268,7 +267,7 @@ Solución: copiar solo el lockfile, instalar, y dejar el código para la última
 </div>
 
 <!--
-(12:30) Hacer: `scripts/demo.sh build` (con `make local` arriba y la caché caliente). Cambia una línea de app.py, construye A y B con time y revierte el cambio.
+(17:00) Hacer: `scripts/demo.sh build` (con `make local` arriba y la caché caliente). Cambia una línea de app.py, construye A y B con time y revierte el cambio.
 Señalar: A ~20 s, reinstala dependencias; B ~3,5 s, solo la última capa.
 -->
 
@@ -286,7 +285,7 @@ Señalar: A ~20 s, reinstala dependencias; B ~3,5 s, solo la última capa.
 </div>
 
 <!--
-(14:30) 20 s contra 3,5 s en cada build, y 311 MB nuevos que subir al registry y bajar en cada nodo, contra 10 KB.
+(19:00) 20 s contra 3,5 s en cada build, y 311 MB nuevos que subir al registry y bajar en cada nodo, contra 10 KB.
 Ojo: en Cloud Build sin caché da igual, 79 contra 82 s. El orden de capas solo sirve si el CI conserva la caché.
 -->
 
@@ -306,8 +305,7 @@ COPY --from=build /app/.venv .venv
 
   <Tabla title="Imagen y autoescalado" unit="A contra B" :rows="[
     { label: 'Imagen', a: '1,46 GB', b: '392 MB' },
-    { label: 'Pull en un nodo nuevo', a: '21,4 s', b: '7,0 s' },
-    { label: 'Réplica nueva hasta Ready', a: '39–45 s', b: '13 s', loss: true },
+    { label: 'Pull en un nodo nuevo', a: '21,4 s', b: '7,0 s', loss: true },
     { label: 'Vulnerabilidades conocidas', a: '4.265', b: '212' },
   ]" />
   </div>
@@ -315,8 +313,8 @@ COPY --from=build /app/.venv .venv
 </div>
 
 <!--
-(16:00) Situación: FROM python:3.13, con compiladores y herramientas que la app no usa. Problema: cuando el autoscaler agrega un nodo, la réplica nueva primero baja la imagen.
-Solución: instalar en una etapa y copiar solo el .venv a una imagen slim. 1,46 GB contra 392 MB: la réplica nueva atiende en 13 s en vez de 45. De paso, 4.265 vulnerabilidades conocidas contra 212.
+(20:30) Situación: FROM python:3.13, con compiladores y herramientas que la app no usa. Problema: cuando el autoscaler agrega un nodo, la réplica nueva primero baja la imagen.
+Solución: instalar en una etapa y copiar solo el .venv a una imagen slim. 1,46 GB contra 392 MB: el pull en un nodo nuevo baja de 21 a 7 s, y la réplica nueva empieza a arrancar antes. De paso, 4.265 vulnerabilidades conocidas contra 212.
 -->
 
 ---
@@ -329,13 +327,13 @@ Solución: instalar en una etapa y copiar solo el .venv a una imagen slim. 1,46 
       <li>Escala con réplicas; la plataforma ya es tu process manager.</li>
       <li><code>exec</code>: que el SIGTERM llegue. <span class="muted">26–30 → 0 cobradas sin orden</span></li>
       <li>Lockfile primero, código al final. <span class="muted">20 → 3,5 s</span></li>
-      <li><code>slim</code> y multi-stage. <span class="muted">45 → 13 s por réplica nueva</span></li>
+      <li><code>slim</code> y multi-stage. <span class="muted">pull 21 → 7 s</span></li>
     </ol>
   </div>
   <footer><Origen>github.com/0bCdian/pyconcl-2026-demo · cada número tiene su script</Origen></footer>
 </div>
 
 <!--
-(18:00) La misma línea de código se comporta distinto en una VM, en un pod con límite y en Cloud Run. Las cinco cosas salen de una pregunta: dónde corre mi código y qué le pide esa plataforma.
+(23:30) La misma línea de código se comporta distinto en una VM, en un pod con límite y en Cloud Run. Las cinco cosas salen de una pregunta: dónde corre mi código y qué le pide esa plataforma.
 El repo tiene los scripts para reproducir cada número. Preguntas.
 -->
