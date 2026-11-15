@@ -67,7 +67,7 @@ proxy:
 
 board:
 	@kubectl -n demo logs deploy/arena | grep -m1 -o 'token=[^ ]*' | sed 's|^|Tablero: http://localhost:8081/screen?|'
-	kubectl -n demo port-forward svc/arena 8081:80
+	while true; do kubectl -n demo port-forward svc/arena 8081:80; sleep 1; done
 
 rollout:
 	kubectl -n demo rollout restart deploy/bad deploy/good
