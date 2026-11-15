@@ -7,7 +7,7 @@ SPOT     ?= false
 TOFU = tofu -chdir=infra
 out  = $$($(TOFU) output -raw $(1))
 
-.PHONY: init plan up down kubeconfig images monitoring cnpg deploy load startup proxy rollout status lint local local-load local-down
+.PHONY: board init plan up down kubeconfig images monitoring cnpg deploy load startup proxy rollout status lint local local-load local-down
 
 init:
 	$(TOFU) init
@@ -64,6 +64,10 @@ proxy:
 	@echo "Prometheus: http://localhost:8001/api/v1/namespaces/monitoring/services/kps-kube-prometheus-stack-prometheus:9090/proxy/"
 	@echo "Arena:      http://localhost:8001/api/v1/namespaces/demo/services/arena:80/proxy/screen?$$(kubectl -n demo logs deploy/arena | grep -m1 -o 'token=[^ ]*')"
 	kubectl proxy --port 8001
+
+board:
+	@kubectl -n demo logs deploy/arena | grep -m1 -o 'token=[^ ]*' | sed 's|^|Tablero: http://localhost:8081/screen?|'
+	kubectl -n demo port-forward svc/arena 8081:80
 
 rollout:
 	kubectl -n demo rollout restart deploy/bad deploy/good

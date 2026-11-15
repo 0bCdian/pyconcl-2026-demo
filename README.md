@@ -51,6 +51,7 @@ make init
 make plan SPOT=true     # revisa el plan
 make up SPOT=true       # tofu apply, imágenes en Cloud Build, Prometheus/Grafana, CloudNativePG y las apps
 make proxy              # Grafana, Prometheus y la arena en localhost:8001
+make board              # el tablero en localhost:8081, con el botón de reiniciar funcionando
 make load RATE=200      # k6 dentro del cluster, misma carga para A y B (RATE, DURATION, MEMORY)
 make rollout            # redeploy de A y B en medio de la carga
 make startup            # segundos desde que se crea un pod hasta su primer 200
