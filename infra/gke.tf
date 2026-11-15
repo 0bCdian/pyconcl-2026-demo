@@ -87,11 +87,13 @@ resource "google_container_node_pool" "demo" {
   node_count = 1
 
   node_config {
-    machine_type    = each.value.machine_type
-    disk_size_gb    = 50
-    spot            = var.spot
-    service_account = google_service_account.nodes.email
-    oauth_scopes    = ["https://www.googleapis.com/auth/cloud-platform"]
+    machine_type = each.value.machine_type
+    # Both versions on the same CPU platform; e2 machines can land on different ones.
+    min_cpu_platform = each.value.side == null ? null : var.app_cpu_platform
+    disk_size_gb     = 50
+    spot             = var.spot
+    service_account  = google_service_account.nodes.email
+    oauth_scopes     = ["https://www.googleapis.com/auth/cloud-platform"]
 
     workload_metadata_config {
       mode = "GKE_METADATA"

@@ -64,3 +64,9 @@ variable "vm_and_cloud_run" {
   type        = bool
   default     = false
 }
+
+variable "app_cpu_platform" {
+  description = "Minimum CPU platform for the two version pools, so both run on the same hardware. Not supported on e2."
+  type        = string
+  default     = null
+}
