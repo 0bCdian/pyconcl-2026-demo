@@ -139,22 +139,6 @@ Ojo, medido en Cloud Build sin caché: build completo A 79 s, B 82 s, iguales. E
 
 ---
 
-<div class="demo">
-  <div class="cifra">DEMO</div>
-  <div>
-    <h1>Arranque hasta el primer 200</h1>
-    <p>Levantamos una réplica de A y una de B con 1 CPU.</p>
-    <p class="aviso"><code>scripts/demo.sh start</code></p>
-  </div>
-</div>
-
-<!--
-(8:00, 2:00) Hacer: `scripts/demo.sh start`. Para las réplicas de `make local` y levanta un contenedor de cada versión con 1 CPU, midiendo con `time` hasta el primer 200 de /health. Imprime también cuántos procesos tiene cada uno.
-Señalar: A ~9–13 s, B ~2 s; y los procesos (17 contra 1). Pregunta para la audiencia: si el tráfico sube ahora, ¿cuánto tardan en llegar las réplicas nuevas?
--->
-
----
-
 <div class="bandas">
   <h2>Autoescalado lento</h2>
   <div class="evidencia dos">
@@ -231,18 +215,41 @@ Arreglos: 1 proceso por contenedor y escalar con réplicas, o fijar PYTHON_CPU_C
 
 ---
 
-<div class="demo">
-  <div class="cifra">DEMO</div>
-  <div>
-    <h1>Detener una réplica</h1>
-    <p>Mismo SIGTERM a A y a B. Miren el tiempo y el exit code.</p>
-    <p class="aviso"><code>scripts/demo.sh stop</code></p>
+<div class="demo vivo">
+  <div class="cabecera">
+    <h1>En vivo: el pico</h1>
+    <p>De 200 a <strong>550 rps</strong> por versión, en las dos al mismo tiempo.</p>
+  </div>
+  <Arena />
+  <div class="lateral">
+    <Grafana :panel="6" title="Requests OK por segundo" />
+    <Grafana :panel="10" title="CPU throttling" />
   </div>
 </div>
 
 <!--
-(18:00, 2:00) Hacer: `scripts/demo.sh stop` (después de `demo.sh start`, con los dos contenedores de demo arriba). Muestra el `time` y el exit code de cada uno.
-Señalar: A ~10 s y exit 137 (SIGKILL); B ~0,4 s y exit 0. Contar qué pasó: el CMD en forma shell deja a sh como PID 1 y SIGTERM nunca llega a gunicorn; la plataforma espera su plazo y mata. Conectar con producción: cada deploy o escalado hacia abajo es esto, por réplica.
+(~3 min) Antes de la charla: `make load RATE=200 DURATION=60m` y la arena en autoplay. Hacer: en otra terminal, `make load RATE=550 DURATION=3m` (reemplaza la carga base; al terminar volver a `make load RATE=200 DURATION=60m`).
+Decir: miren los errores de A en el tablero y los de B no. En los paneles: A sirve ~300 rps con su CPU frenada al 100%; B sirve los 550. Prometheus va ~15 s atrasado.
+Si el cluster no responde, los paneles muestran la captura del ensayo.
+-->
+
+---
+<div class="demo vivo">
+  <div class="cabecera">
+    <h1>En vivo: un deploy</h1>
+    <p>Desplegamos las dos versiones con carga. Miren <strong>cobradas sin orden</strong>.</p>
+  </div>
+  <Arena />
+  <div class="lateral">
+    <Grafana :panel="7" title="Errores por segundo" />
+    <Grafana :panel="13" title="Réplicas listas" />
+  </div>
+</div>
+
+<!--
+(~3 min) Hacer: con la carga base de 200 rps, `make rollout`.
+Decir: B termina en ~10 s; A tarda ~45 s y, cuando la plataforma la mata con SIGKILL, pierde órdenes ya cobradas. Mostrar el contador de cobradas sin orden de cada versión en el tablero.
+Si el cluster no responde, los paneles muestran la captura del ensayo.
 -->
 
 ---
