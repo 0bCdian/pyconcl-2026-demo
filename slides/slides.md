@@ -101,7 +101,7 @@ workers = multiprocessing.cpu_count() * 2 + 1   # gunicorn.org/guides/docker
     </tbody>
   </table>
   </div>
-  <footer><Origen>GCP · 15 nov</Origen><Origen>docs.python.org · os.cpu_count(): "CPUs in the system"</Origen></footer>
+  <footer><Origen>GCP · 15 nov</Origen><Origen>gunicorn.org/guides/docker</Origen><Origen>docs.python.org/3/library/os.html#os.cpu_count</Origen></footer>
 </div>
 
 <!--
@@ -122,7 +122,7 @@ Solución: cuenta desde el límite. Un proceso por contenedor, o PYTHON_CPU_COUN
       { label: 'Conexiones a PostgreSQL', a: '170', b: '10' },
     ]" />
   </div>
-  <footer><Origen>GKE · 11 y 15 nov · 3 corridas</Origen></footer>
+  <footer><Origen>GKE · 11 y 15 nov · 3 corridas</Origen><Origen>docs.python.org/3/using/cmdline.html · PYTHON_CPU_COUNT</Origen></footer>
 </div>
 
 <!--
@@ -142,7 +142,7 @@ En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: e
       { label: 'CPU frenada (throttling)', a: '100%', b: '0%' },
     ]" />
   </div>
-  <footer><Origen>GKE · 15 nov · nodos n2 idénticos</Origen></footer>
+  <footer><Origen>GKE · 15 nov · nodos n2 idénticos</Origen><Origen>kubernetes.io/docs/concepts/configuration/manage-resources-containers</Origen></footer>
 </div>
 
 <!--
@@ -160,7 +160,7 @@ En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: e
       <p>La diferencia es operativa: Kubernetes escala, revisa y despliega por pod.</p>
     </div>
   </div>
-  <footer><Origen>GKE · 15 nov · rampa de 100 a 1.000 rps · 1 corrida</Origen></footer>
+  <footer><Origen>GKE · 15 nov · rampa de 100 a 1.000 rps · 1 corrida</Origen><Origen>fastapi.tiangolo.com/deployment/docker</Origen><Origen>kubernetes.io · Horizontal Pod Autoscaling</Origen></footer>
 </div>
 
 <!--
@@ -189,7 +189,7 @@ gunicorn -c gunicorn_conf.py app:app
     <p class="loss"><strong>La plataforma espera y mata con SIGKILL, con órdenes a medio camino.</strong></p>
   </div>
   </div>
-  <footer><Origen>deploy/bad</Origen><Origen>docs.docker.com · la forma shell no recibe señales</Origen></footer>
+  <footer><Origen>docs.docker.com/reference/dockerfile · shell and exec form</Origen><Origen>kubernetes.io · Pod lifecycle, termination</Origen></footer>
 </div>
 
 <!--
@@ -219,7 +219,7 @@ exec gunicorn -c gunicorn_conf.py app:app
       { label: 'Solo el exec, 1 worker en los dos', a: '26', b: '0' },
     ]" />
   </div>
-  <footer><Origen>Apagado: Podman · 15 nov</Origen><Origen>Cobros: GKE · 11 nov · 3 corridas; solo exec: 1 corrida</Origen></footer>
+  <footer><Origen>Apagado: Podman · 15 nov</Origen><Origen>Cobros: GKE · 11 nov · 3 corridas; solo exec: 1 corrida</Origen><Origen>docs.docker.com/reference/cli/docker/container/stop</Origen></footer>
 </div>
 
 <!--
@@ -248,7 +248,7 @@ COPY app/app.py ./
 ```
 
   </div>
-  <footer><Origen>deploy/bad/Dockerfile</Origen><Origen>deploy/good/Dockerfile</Origen><Origen>docs.docker.com/build/cache</Origen></footer>
+  <footer><Origen>docs.docker.com/build/cache/optimize</Origen><Origen>docs.astral.sh/uv/guides/integration/docker</Origen></footer>
 </div>
 
 <!--
@@ -276,7 +276,7 @@ Señalar: A ~20 s, reinstala dependencias; B ~3,5 s, solo la última capa.
 <div class="bandas">
   <h2>4. Lo que cuesta cada cambio</h2>
   <Tabla title="Tras cambiar 1 línea" unit="A contra B" :rows="[
-    { label: 'Rebuild', a: '20–21 s', b: '3,5 s' },
+    { label: 'Rebuild local, cada cambio', a: '20–21 s', b: '3,5 s' },
     { label: 'Capas nuevas que subir al registry', a: '311 MB', b: '0,01 MB', loss: true },
     { label: 'Cloud Build sin caché', a: '79 s', b: '82 s' },
   ]" />
@@ -285,7 +285,7 @@ Señalar: A ~20 s, reinstala dependencias; B ~3,5 s, solo la última capa.
 </div>
 
 <!--
-(19:00) 20 s contra 3,5 s en cada build, y 311 MB nuevos que subir al registry y bajar en cada nodo, contra 10 KB.
+(19:00) Esto se siente primero en tu máquina: cada vez que cambias código y reconstruyes para probar, 20 s contra 3,5 s. En un día de iteración local son minutos perdidos por persona. Y en el registry: 311 MB nuevos que subir al registry y bajar en cada nodo, contra 10 KB.
 Ojo: en Cloud Build sin caché da igual, 79 contra 82 s. El orden de capas solo sirve si el CI conserva la caché.
 -->
 
@@ -309,7 +309,7 @@ COPY --from=build /app/.venv .venv
     { label: 'Vulnerabilidades conocidas', a: '4.265', b: '212' },
   ]" />
   </div>
-  <footer><Origen>GKE · 15 nov · nodo nuevo</Origen><Origen>Trivy 0.76.2</Origen></footer>
+  <footer><Origen>GKE · 15 nov · nodo nuevo</Origen><Origen>Trivy 0.76.2</Origen><Origen>docs.docker.com/build/building/best-practices · multi-stage</Origen></footer>
 </div>
 
 <!--
@@ -336,4 +336,30 @@ Solución: instalar en una etapa y copiar solo el .venv a una imagen slim. 1,46 
 <!--
 (23:30) La misma línea de código se comporta distinto en una VM, en un pod con límite y en Cloud Run. Las cinco cosas salen de una pregunta: dónde corre mi código y qué le pide esa plataforma.
 El repo tiene los scripts para reproducir cada número. Preguntas.
+-->
+
+---
+
+<div class="bandas">
+  <h2>Fuentes</h2>
+  <ul class="fuentes">
+    <li>gunicorn.org/guides/docker · gunicorn.org/design</li>
+    <li>docs.python.org/3/library/os.html#os.cpu_count · docs.python.org/3/using/cmdline.html (PYTHON_CPU_COUNT, -X cpu_count)</li>
+    <li>fastapi.tiangolo.com/deployment/docker</li>
+    <li>kubernetes.io/docs/concepts/configuration/manage-resources-containers</li>
+    <li>kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle (termination)</li>
+    <li>kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale</li>
+    <li>docs.docker.com/reference/dockerfile (shell and exec form) · docs.docker.com/reference/cli/docker/container/stop</li>
+    <li>docs.docker.com/build/cache/optimize · docs.docker.com/build/building/best-practices</li>
+    <li>docs.astral.sh/uv/guides/integration/docker</li>
+    <li>Mediciones y scripts: github.com/0bCdian/pyconcl-2026-demo</li>
+  </ul>
+</div>
+
+<style>
+.fuentes { margin: 0; padding-left: 24px; font-size: 21px; line-height: 1.6; font-family: var(--mono); }
+</style>
+
+<!--
+Fuentes, por si preguntan. Cada número del deck tiene su script en el repo.
 -->
