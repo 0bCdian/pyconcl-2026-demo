@@ -16,6 +16,9 @@ resource "google_compute_subnetwork" "demo" {
   region        = var.region
   ip_cidr_range = "10.10.0.0/20"
 
+  # Nodes and the VM have no public address; Google APIs and Artifact Registry stay reachable.
+  private_ip_google_access = true
+
   secondary_ip_range {
     range_name    = "pods"
     ip_cidr_range = "10.20.0.0/16"

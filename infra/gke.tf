@@ -35,6 +35,12 @@ resource "google_container_cluster" "demo" {
     workload_pool = local.workload_pool
   }
 
+  # Nodes get only internal addresses. The control plane keeps its public endpoint, which requires Google credentials.
+  private_cluster_config {
+    enable_private_nodes    = true
+    enable_private_endpoint = false
+  }
+
   ip_allocation_policy {
     cluster_secondary_range_name  = "pods"
     services_secondary_range_name = "services"

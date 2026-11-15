@@ -15,7 +15,7 @@ locals {
 }
 
 resource "google_compute_instance" "vm" {
-  count = local.on ? 1 : 0
+  count = local.on && var.vm_and_cloud_run ? 1 : 0
 
   name         = "${var.name_prefix}-vm"
   machine_type = var.app_machine_type
@@ -29,10 +29,9 @@ resource "google_compute_instance" "vm" {
     }
   }
 
-  # The ephemeral external address is only for apt and pip; no firewall rule lets the internet in.
+  # No public address: apt and pip go out through Cloud NAT, SSH comes in through IAP.
   network_interface {
     subnetwork = google_compute_subnetwork.demo.id
-    access_config {}
   }
 
   service_account {
@@ -78,9 +77,9 @@ resource "google_compute_firewall" "vm_ssh_from_iap" {
 }
 
 output "vm_name" {
-  value = local.on ? google_compute_instance.vm[0].name : null
+  value = one(google_compute_instance.vm[*].name)
 }
 
 output "vm_address" {
-  value = local.on ? google_compute_instance.vm[0].network_interface[0].network_ip : null
+  value = one(google_compute_instance.vm[*].network_interface[0].network_ip)
 }
