@@ -21,12 +21,32 @@ exportFilename: misma-app-dos-resultados-distintos
     <h1>Misma app,<br>dos resultados distintos</h1>
     <p>Buenas prácticas para desplegar Python en contenedores</p>
   </div>
-  <div></div>
+  <div class="sellos">
+    <Seal word="memoria" :size="190" />
+    <Seal word="baja disponibilidad" :size="190" />
+    <Seal word="reinicios" :size="190" />
+    <Seal word="latencia" :size="190" />
+  </div>
   <div class="pie"><span>PyCon Chile 2026</span><span class="muted">Online</span><span class="muted">Diego Parra</span></div>
 </div>
 
 <!--
 (0:00) La misma app, empaquetada dos veces. Mismo código Python, mismos recursos, mismo manifiesto de Kubernetes. Cambia cómo se construye la imagen y cómo arranca el proceso.
+-->
+
+---
+layout: none
+---
+
+<div class="meme"><img src="/tulio-cola.jpg" alt="Lata de Tulio Cola de 31 Minutos llena de sellos ALTO EN"></div>
+
+<style>
+.meme { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #f6b800; }
+.meme img { height: 100%; width: auto; object-fit: contain; }
+</style>
+
+<!--
+(0:30) El meme. Así se ve la versión A después de esta charla: cumple, pero con todos los sellos.
 -->
 
 ---
