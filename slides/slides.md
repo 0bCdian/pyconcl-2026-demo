@@ -349,20 +349,6 @@ Ordenar: A copia todo el código y después instala, así que cambiar una línea
 B usa --frozen (instala el lock tal cual); --locked además falla si uv.lock no coincide con pyproject.toml, como npm ci. No es pip contra uv: con pip se hace igual (requirements.txt primero, pip install --no-cache-dir, código al final). uv suma velocidad; en B su binario se copia desde la imagen oficial, fijado a una versión, y no queda en la imagen final.
 -->
 
----
-
-<div class="demo">
-  <div class="cifra">DEMO</div>
-  <div>
-    <h1>Una línea de código, dos builds</h1>
-    <p class="aviso"><code>scripts/demo.sh build</code></p>
-  </div>
-</div>
-
-<!--
-(17:00) Hacer: `scripts/demo.sh build` (con `make local` arriba y la caché caliente). Cambia una línea de app.py, construye A y B con time y revierte el cambio.
-Señalar: A ~20 s, reinstala dependencias; B ~3,5 s, solo la última capa.
--->
 
 ---
 
