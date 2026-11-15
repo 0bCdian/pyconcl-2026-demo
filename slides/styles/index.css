@@ -147,3 +147,7 @@
 .resumen .tabla td { font-size: 16px; padding: 5px 0 5px 12px; }
 .resumen .preparacion li { font-size: 20px; padding: 9px 0 9px 48px; }
 .resumen > h2 { font-size: 48px; }
+
+.grafico { width: 100%; max-height: 520px; object-fit: contain; border: 3px solid var(--ink); background: var(--paper); padding: 8px; box-sizing: border-box; }
+.preparacion .muted { font-size: .8em; margin-left: 8px; }
+.cierre li { font-size: 28px; padding: 14px 0 14px 60px; }
