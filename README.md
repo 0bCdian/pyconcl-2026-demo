@@ -153,6 +153,8 @@ Comandos desde la raíz del repo. Los de GKE necesitan el cluster arriba (`make 
 | "Cuántos procesos por pod" | `benchmarks/gke/build.sh && benchmarks/gke/parallel.sh` |
 | Tamaños de los pools de la biblioteca estándar | `benchmarks/gke/pools.sh` |
 | Tabla "Resultados" (Podman) | `benchmarks/containers.sh` |
+| Demos de la charla: rebuild, arranque y apagado con `time` | `scripts/demo.sh build`, `start`, `stop` (con `make local` arriba) |
+| Arranque en nodo frío, rollout, Cloud Build, VM y Cloud Run (15 de noviembre) | ver `benchmarks/results/2026-11-15/README.md` |
 | Tabla de lecciones de código | `benchmarks/code/run.sh` |
 
 Sin script propio: el "+31% de CPU con DEBUG" se calcula a mano comparando dos salidas de `ablation.sh`/`resources.sh` (con DEBUG y con INFO); y las 170 conexiones a PostgreSQL se contaron a mano con `pg_stat_activity`.
