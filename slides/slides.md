@@ -329,7 +329,7 @@ Rollout de 2 réplicas en GKE: A 43–47 s hasta terminar y 84–88 s hasta que 
       <li>Conoce las reglas de tu plataforma: límites, apagado, CPU.</li>
     </ol>
   </div>
-  <footer><Origen>GKE · 11 y 15 nov · memoria, pico, deploy, arranque</Origen><Origen>Podman · 15 nov · build</Origen><Origen>CHECKLIST.md</Origen></footer>
+  <footer><Origen>GKE · 11 y 15 nov · memoria, pico, deploy, arranque</Origen><Origen>Podman · 15 nov · build</Origen></footer>
 </div>
 
 <!--

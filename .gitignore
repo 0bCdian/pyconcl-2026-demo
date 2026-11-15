@@ -3,4 +3,3 @@ __pycache__/
 .terraform/
 .ruff_cache/
 node_modules/
-.impeccable/review/
