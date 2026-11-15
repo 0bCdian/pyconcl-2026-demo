@@ -99,6 +99,10 @@ Los números cambian según la máquina; lo que se mantiene es la diferencia ent
 | Arranque en GKE | `make startup` |
 | Rollout en GKE | `make rollout` y `kubectl -n demo rollout status deploy/bad` |
 | Cloud Run | `gcloud run jobs execute pycon-cpu-probe` |
+| VM sin contenedor | `vm_and_cloud_run = true` en tofu, `scripts/vm.sh`, y k6 con `TARGETS=vm=http://<vm_address>:8000` |
+| Conexiones a PostgreSQL por pod | `kubectl -n demo exec postgres-1 -c postgres -- psql -U postgres -d shop -c "select usename, count(*) from pg_stat_activity group by 1"` |
+| Pull y réplica nueva en nodo frío | tras crear el cluster: eventos `Pulled` (`kubectl -n demo get events --field-selector reason=Pulled`) y la condición Ready de cada pod contra su `creationTimestamp` |
+| Build completo sin caché | `make images`, luego `gcloud builds describe <id>` (duración de cada paso) |
 | Lint de los Dockerfiles | `make lint` |
 
 ## Deck
