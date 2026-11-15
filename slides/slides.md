@@ -133,10 +133,10 @@ En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: e
 ---
 
 <div class="bandas">
-  <h2>1. Y en un pico de 550 rps</h2>
+  <h2>1. Y en un peak de 550 rps</h2>
   <div class="evidencia dos">
-    <img class="grafico" src="/charts/served.svg" alt="Requests OK por segundo de A y B durante el pico">
-    <Tabla title="Pico de 550 rps" unit="1 CPU por pod" :rows="[
+    <img class="grafico" src="/charts/served.svg" alt="Requests OK por segundo de A y B durante el peak">
+    <Tabla title="Peak de 550 rps" unit="1 CPU por pod" :rows="[
       { label: 'Servidas', a: '~300/s', b: '550/s', loss: true },
       { label: 'p95', a: '> 5 s', b: '≈ 250 ms' },
       { label: 'CPU frenada (throttling)', a: '100%', b: '0%' },
@@ -146,7 +146,7 @@ En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: e
 </div>
 
 <!--
-(6:30) En el pico, los 17 workers de A se pelean una sola CPU: el kernel los frena el 100% del tiempo, A cae a ~300 requests por segundo y el p95 pasa los 5 s. B sirve los 550 con p95 de 250 ms.
+(6:30) En el peak, los 17 workers de A se pelean una sola CPU: el kernel los frena el 100% del tiempo, A cae a ~300 requests por segundo y el p95 pasa los 5 s. B sirve los 550 con p95 de 250 ms.
 -->
 
 ---

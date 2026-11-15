@@ -69,7 +69,7 @@ Las dos versiones leen el catálogo de un bucket con Workload Identity, sin llav
 |---|---|---|---|
 | Memoria por pod, 200 rps | 1.430 MiB | 95 MiB | GKE, 11 nov |
 | Conexiones a la base | 170 | 10 | local |
-| Servidas en el pico de 550 rps | ~300/s, p95 > 5 s | 550/s, p95 ≈ 255 ms | GKE, 11 nov |
+| Servidas en un peak de 550 rps | ~300/s, p95 > 5 s | 550/s, p95 ≈ 255 ms | GKE, 11 nov |
 | Cobradas sin orden en un deploy | 26–30 | 0 | GKE, 11 nov |
 | Réplica nueva en nodo frío | 39–45 s | 13 s | GKE, 15 nov |
 | Rollout de 2 réplicas | 43–47 s | 8–12 s | GKE, 15 nov |
@@ -90,10 +90,10 @@ Los números cambian según la máquina; lo que se mantiene es la diferencia ent
 | Paquetes, vulnerabilidades, rebuild y capas nuevas | `benchmarks/image.sh` |
 | Variantes de A con una práctica cada vez, en Podman | `benchmarks/gke/local-ablation.sh` |
 | Rebuild, arranque y apagado en vivo | `scripts/demo.sh build`, `start`, `stop` |
-| Memoria, pico y deploy en GKE: A y B tal cual | `benchmarks/gke/baseline.sh 3` |
+| Memoria, peak y deploy en GKE: A y B tal cual | `benchmarks/gke/baseline.sh 3` |
 | Lo mismo con una práctica cada vez | `benchmarks/gke/build.sh && benchmarks/gke/ablation.sh` |
 | Memoria por pod | `make load RATE=200 DURATION=90s`, luego `benchmarks/gke/resources.sh` |
-| Pico de 550 rps | `make load RATE=550 DURATION=3m`, luego `benchmarks/gke/watch.sh` |
+| Peak de 550 rps | `make load RATE=550 DURATION=3m`, luego `benchmarks/gke/watch.sh` |
 | Cobradas sin orden en un deploy | `benchmarks/gke/charges.sh rollout` |
 | Arranque en GKE | `make startup` |
 | Rollout en GKE | `make rollout` y `kubectl -n demo rollout status deploy/bad` |
