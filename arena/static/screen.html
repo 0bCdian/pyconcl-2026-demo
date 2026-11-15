@@ -27,7 +27,8 @@
   .headline b.loss { color: var(--loss); }
   .big { display: grid; grid-template-columns: 1fr 1fr; align-content: space-evenly; }
   .big div { padding: 1.4vh 0; }
-  .big b { font-size: 9.5vh; line-height: 1; font-weight: 700; display: block; }
+  .big { column-gap: 2vw; }
+  .big b { font-size: min(9.5vh, 3.6vw); line-height: 1; font-weight: 700; display: block; white-space: nowrap; }
   .big b.loss { color: var(--loss); }
   .small { display: grid; grid-template-columns: 1fr 1fr; border-top: .5vh solid var(--ink); padding-top: 1.2vh; }
   .small b { font-size: 6vh; font-weight: 600; }
