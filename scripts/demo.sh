@@ -5,24 +5,29 @@ set -eu
 cd "$(dirname "$0")/.."
 ENV="-e PAYMENTS_URL=http://payments:8000/charge -e DATABASE_URL=postgresql://shop:shop@postgres/shop -e LOG_LEVEL=INFO"
 
+# Only the demo containers run: make local's replicas would share the CPUs and, with A's 17 workers each, exhaust max_connections.
+podman stop -t0 bad-1 bad-2 good-1 good-2 arena >/dev/null 2>&1 || true
+
 case ${1:?build|start|stop|size} in
 build)
+  cp app/app.py app/app.py.demo
+  trap 'mv app/app.py.demo app/app.py' EXIT
   echo "# demo $(date +%s)" >> app/app.py
   for version in bad good; do
     echo "== $version"
     time podman build --pull=never -q -t pycon-$version -f deploy/$version/Dockerfile . >/dev/null
   done
-  sed -i '' '$d' app/app.py
   ;;
 start)
-  # Only the demo containers use the database: with make local's replicas, A's 17 workers exhaust max_connections.
-  podman stop -t0 bad-1 bad-2 good-1 good-2 arena >/dev/null 2>&1 || true
   for version in bad good; do
     podman rm -f -t0 demo-$version >/dev/null 2>&1 || true
     echo "== $version"
     time {
       podman run -d --name demo-$version --network pycon --cpus 1 --memory 2g $ENV -e SHOP_NAME=$version pycon-$version >/dev/null
-      until podman exec demo-$version python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" 2>/dev/null; do sleep 0.2; done
+      for _ in $(seq 300); do
+        podman exec demo-$version python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" 2>/dev/null && break
+        sleep 0.2
+      done
     }
     echo "procesos: $(podman top demo-$version args | grep -c '[g]unicorn\|[u]vicorn')"
   done
