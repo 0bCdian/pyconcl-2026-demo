@@ -15,7 +15,6 @@ LATENCY_MS = int(os.environ.get("LATENCY_MS", "150"))
 DATABASE_URL = os.environ["DATABASE_URL"]
 EPOCH = datetime.fromtimestamp(0, UTC)
 
-# ponytail: the anti-join scans every charge since `since`; fine for a 30-minute demo.
 RECONCILIATION_SQL = """
 select s.shop,
        (select count(*) from charges where shop = s.shop and created_at >= $1) as charges,
