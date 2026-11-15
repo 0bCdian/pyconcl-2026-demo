@@ -15,37 +15,26 @@ download: false
 exportFilename: misma-app-dos-resultados-distintos
 ---
 
-<div class="paquete">
+
+<div class="paquete" style="grid-template-columns:1fr">
   <div class="marca">
     <h1>Misma app,<br>dos resultados distintos</h1>
     <p>Buenas prácticas para desplegar Python en contenedores</p>
   </div>
-  <div class="sellos">
-    <Seal word="memoria" :size="190" foot="medido en Podman" />
-    <Seal word="señales" :size="190" foot="medido en Podman" />
-    <Seal word="peso" :size="190" foot="medido en Podman" />
-  </div>
+  <div></div>
   <div class="pie"><span>PyCon Chile 2026</span><span class="muted">Online</span><span class="muted">Diego Parra</span></div>
-  <div class="lado">
-    <Tabla unit="Mismo código, 1 CPU por contenedor" :rows="[
-      { label: 'Memoria por pod', a: '1.430 MiB', b: '95 MiB' },
-      { label: 'Rebuild, 1 línea', a: '20–21 s', b: '3,5 s' },
-      { label: 'Cobradas sin orden', a: '26–30', b: '0', loss: true },
-      { label: 'Imagen', a: '1,46 GB', b: '392 MB' },
-    ]" origin="GKE 11 nov · Podman 15 nov" />
-  </div>
 </div>
 
 <!--
-(0:00, 0:45) Es la misma app dos veces, en un contenedor, con una diferencia: cómo está construido y cómo arranca. Vamos a subir una escalera, una práctica por escalón, y en cada una veremos qué mejora y en qué entorno.
-La tabla es el resumen de la charla. Las demos son en mi laptop con Podman; las pruebas de carga ya están medidas en GKE y se muestran como resultados finales. Llévenlo a su plataforma: Kubernetes, Cloud Run, ECS o una VM.
+(0:00, 0:45) Es la misma app dos veces, en un contenedor, con una diferencia: cómo está construida y cómo arranca.
+Cuatro prácticas, cada una con el código malo, el bueno y los números. Dos demos en vivo y el resto medido en GKE y Podman.
 -->
 
 ---
 
 <div class="bandas">
   <h2>Una tienda. Un <code>app.py</code>.</h2>
-  <div class="evidencia">
+  <div class="evidencia apilado">
 
 ```python
 @app.post("/orders")
@@ -58,159 +47,91 @@ async def create_order(order: Order):
 ```
 
   <div class="flujo">
-    <p><strong>Catálogo</strong> de productos.</p>
-    <p><strong>Órdenes</strong>: cobran en un servicio de pagos (~150 ms) y después se guardan en PostgreSQL.</p>
-    <p class="loss"><strong>Si el proceso muere entre los dos pasos, hay un cobro sin orden.</strong></p>
-  </div>
-  </div>
-  <footer><Origen>app/app.py · FastAPI</Origen></footer>
-</div>
-
-<!--
-(0:45, 1:30) La app es aburrida a propósito. Cobra y guarda. Si el proceso muere justo entre el cobro y el insert, el cliente pagó y no tiene nada. Esa es la métrica de la charla: cobradas sin orden, contadas con una consulta SQL entre los cobros y la tabla de órdenes, no restando logs.
--->
-
----
-
-<div class="bandas">
-  <h2>Dos imágenes, el mismo código</h2>
-  <div class="evidencia">
-    <table class="receta cifras">
-      <thead><tr><th></th><th>Versión A</th><th>Versión B</th></tr></thead>
+    <table class="receta cifras compacta">
+      <thead><tr><th></th><th>A: como en el tutorial</th><th>B: con las prácticas</th></tr></thead>
       <tbody>
-        <tr><th>Base</th><td><code>python:3.13</code></td><td><code>python:3.13-slim</code>, dos etapas</td></tr>
-        <tr><th>Dependencias</th><td><code>pip install</code> después del código</td><td><code>uv sync --frozen</code> antes del código</td></tr>
-        <tr><th>Arranque</th><td><code>CMD ./start.sh</code> sin <code>exec</code></td><td><code>CMD ["uvicorn", …]</code></td></tr>
-        <tr><th>Procesos</th><td><code>cpu_count() * 2 + 1</code> workers</td><td>1 proceso</td></tr>
-        <tr><th>Usuario</th><td>root</td><td><code>USER 1000</code></td></tr>
+        <tr><th>Base</th><td><code>python:3.13</code></td><td><code>3.13-slim</code></td></tr>
+        <tr><th>Dependencias</th><td><code>pip</code>, después</td><td><code>uv.lock</code>, antes</td></tr>
+        <tr><th>Arranque</th><td><code>CMD ./start.sh</code></td><td><code>CMD ["uvicorn", …]</code></td></tr>
+        <tr><th>Procesos</th><td>17 workers</td><td>1</td></tr>
       </tbody>
     </table>
   </div>
-  <footer><Origen>deploy/bad/Dockerfile</Origen><Origen>deploy/good/Dockerfile</Origen></footer>
-</div>
-
-<!--
-(2:15, 1:30) Todo lo que cambia. A es el Dockerfile que sale de cualquier tutorial: nada rompe un test ni un linter. B aplica una práctica por fila. Tres problemas de producción: builds lentos, autoescalado lento y deploys que pierden órdenes. Cada uno viene de una práctica que falta.
--->
-
----
-
-<div class="demo">
-  <div class="cifra">DEMO</div>
-  <div>
-    <h1>Builds lentos</h1>
-    <p>Cambiamos una línea de <code>app.py</code> y reconstruimos A y B.</p>
-    <p class="aviso"><code>scripts/demo.sh build</code></p>
   </div>
+  <footer><Origen>app/app.py · FastAPI</Origen><Origen>deploy/bad/Dockerfile</Origen><Origen>deploy/good/Dockerfile</Origen></footer>
 </div>
 
+<style>
+.compacta tbody th { font-size: 20px; padding: 4px 12px 4px 0; }
+.compacta td { padding: 4px 12px 4px 0; font-size: 19px; }
+</style>
+
 <!--
-(3:30, 2:30) Hacer: `scripts/demo.sh build` (con `make local` ya levantado y las dos imágenes construidas una vez, cache caliente). Imprime el `time` de A y luego el de B, y revierte el cambio solo.
-Señalar: A ~20 s (repite pip install porque el código se copia antes de las dependencias); B ~3,5 s (solo cambia la última capa). Preguntar: ¿cuántas veces por día corre su CI? Multiplicar la diferencia por esa cifra.
-Si el build tarda por la red, dejar correr y hablar del slide siguiente; los números ya están medidos.
+(0:45, 1:30) La app es aburrida a propósito: catálogo y órdenes; cada orden cobra en un servicio de pagos y luego se guarda en PostgreSQL. Si el proceso muere entre el cobro y el insert, el cliente pagó y no tiene orden. Esa es la métrica: cobradas sin orden.
+Dos imágenes con el mismo código: A es la del tutorial, B aplica cuatro prácticas. Una por una.
 -->
 
 ---
 
 <div class="bandas">
-  <h2>Builds lentos, y cuánto cuestan</h2>
-  <div class="evidencia dos">
-    <Tabla title="Tras cambiar 1 línea" unit="A contra B" :rows="[
-      { label: 'Rebuild', a: '20–21 s', b: '3,5 s' },
-      { label: 'Capas nuevas por deploy', a: '311 MB', b: '0,01 MB' },
-      { label: 'Imagen', a: '1,46 GB', b: '392 MB' },
-      { label: 'Comprimida en el registro', a: '545 MB', b: '114 MB' },
-    ]" />
-    <div class="lineas">
-      <p><strong>CI:</strong> minutos de build en cada commit.</p>
-      <p><strong>Artifact Registry:</strong> almacenamiento y egress por cada versión.</p>
-      <p><strong>Nodos:</strong> el disco efímero se llena de imágenes.</p>
-      <p class="loss"><strong>CI sin caché</strong> (Cloud Build): 79 s contra 82 s. Si el CI no guarda las capas, el orden no ayuda.</p>
-    </div>
-  </div>
-  <footer><Origen>Rebuild: Podman · 15 nov · 5 corridas</Origen><Origen>Capas nuevas: Podman · 11 nov · image.sh</Origen><Origen>Comprimida: GKE · pull</Origen><Origen>Cloud Build · 15 nov · 1 corrida</Origen><Origen>docs.docker.com/build/cache/optimize</Origen></footer>
-</div>
-
-<!--
-(6:00, 2:00) La causa: A copia el código antes de pip install, así que cualquier cambio invalida la capa de dependencias; B copia primero el lockfile, instala y deja el código en la última capa (los pasos que cambian seguido van al final, dice la documentación de Docker). Resultado: 311 MB de capas nuevas por cambio contra 0,01 MB.
-Implicaciones: minutos de CI, almacenamiento y egress en el registro (545 MB contra 114 MB comprimida, por imagen y por versión) y disco efímero del nodo.
-Ojo, medido en Cloud Build sin caché: build completo A 79 s, B 82 s, iguales. El orden de capas solo ahorra si el CI conserva la caché (cache-from, caché del runner). Sin eso, todos los builds son el peor caso.
--->
-
----
-
-<div class="bandas">
-  <h2>Autoescalado lento</h2>
-  <div class="evidencia dos">
-    <Tabla title="Réplica nueva" unit="A contra B" :rows="[
-      { label: 'Arranque en Podman', a: '9–13 s', b: '2,2 s' },
-      { label: 'Arranque en GKE, imagen ya en el nodo', a: '20–26 s', b: '5 s' },
-      { label: 'Réplica nueva en nodo frío (pull + arranque)', a: '39–45 s', b: '13 s', loss: true },
-    ]" />
-    <div class="consecuencia">
-      <p>Cuando sube el tráfico, las réplicas nuevas de A <strong>llegan tarde</strong>.</p>
-      <p class="chica">En un nodo nuevo se suma: el pull y el arranque.</p>
-    </div>
-  </div>
-  <footer><Origen>Podman y GKE · 15 nov · 3 corridas</Origen><Origen>Nodo frío: GKE · 15 nov · 2 pods por versión</Origen></footer>
-</div>
-
-<!--
-(10:00, 2:00) Arranque: 9–13 s contra 2,2 s (5 corridas), porque A arranca 17 procesos que importan pandas cada uno en 1 CPU. En GKE, con la imagen ya en el nodo: 20–26 s contra 5 s. En un nodo frío, que es lo que pasa cuando el autoscaler agrega nodos, se suma el pull (21 s contra 7 s): 39–45 s contra 13 s hasta que la réplica recibe tráfico. El autoscaler agrega réplicas cuando ya hay tráfico; cada segundo de arranque es tráfico que cae sobre las réplicas que ya existen.
--->
-
----
-
-<div class="bandas">
-  <h2>¿Dónde corre tu app?</h2>
+  <h2>1. Procesos según el contenedor, no la máquina</h2>
   <div class="evidencia apilado">
-    <div class="fila">
-      <p class="chica">La guía de Docker de gunicorn recomienda <code>workers = cpu_count() * 2 + 1</code>. Es la config de A.</p>
-    </div>
-    <table class="receta cifras">
-      <thead><tr><th>Entorno</th><th><code>os.cpu_count()</code></th><th>Workers</th><th>CPU real</th></tr></thead>
-      <tbody>
-        <tr><th>VM e2-standard-8, sin contenedor</th><td><span class="num">8</span></td><td><span class="num">17</span></td><td>8</td></tr>
-        <tr><th>Pod GKE, límite de 1 CPU, mismo tipo de máquina</th><td><span class="num">8</span></td><td><span class="num">17</span></td><td class="loss"><span class="num">1</span></td></tr>
-        <tr><th>Cloud Run, 1 vCPU</th><td><span class="num">5–6</span></td><td class="loss"><span class="num">11–13</span></td><td class="loss"><span class="num">1</span></td></tr>
-      </tbody>
-    </table>
-  </div>
-  <footer><Origen>gunicorn.org/guides/docker</Origen><Origen>docs.python.org · os.cpu_count()</Origen><Origen>GCP · 15 nov · Cloud Run: 3 ejecuciones</Origen></footer>
+
+```python {2}
+import multiprocessing
+workers = multiprocessing.cpu_count() * 2 + 1
+```
+
+  <table class="receta cifras">
+    <thead><tr><th>Entorno</th><th><code>os.cpu_count()</code></th><th>Workers</th><th>CPU real</th></tr></thead>
+    <tbody>
+      <tr><th>VM e2-standard-8, sin contenedor</th><td><span class="num">8</span></td><td><span class="num">17</span></td><td>8</td></tr>
+      <tr><th>Pod GKE, límite de 1 CPU</th><td><span class="num">8</span></td><td><span class="num">17</span></td><td class="loss"><span class="num">1</span></td></tr>
+      <tr><th>Cloud Run, 1 vCPU</th><td><span class="num">5–6</span></td><td class="loss"><span class="num">11–13</span></td><td class="loss"><span class="num">1</span></td></tr>
+    </tbody>
+  </table>
+  <p class="chica">En la VM está bien: 550 rps sin errores, p95 212 ms.</p>
+</div>
+<footer><Origen>gunicorn.org/guides/docker</Origen><Origen>docs.python.org · os.cpu_count()</Origen><Origen>GCP · 15 nov · Cloud Run: 3 ejecuciones</Origen></footer>
 </div>
 
 <!--
-(12:00, 2:30) Esta config la copiamos de la guía oficial de Docker de gunicorn. En una VM es correcta: usa los 8 núcleos. En el pod, con límite de 1 CPU en la misma máquina, os.cpu_count() sigue diciendo 8 (el límite vive en cgroups, cpu.max) y salen 17 workers en 1 CPU. Python 3.13 documenta PYTHON_CPU_COUNT para "usuarios que necesitan limitar la CPU de un contenedor".
-Mismo código, mismo cálculo, tres resultados según la plataforma. En la VM es correcto: con la misma config, A sirvió 550 rps con 0% de errores y p95 de 212 ms, usando 1,45 GB de 32 GB y una carga de 1,8 sobre 8 núcleos. En Cloud Run con 1 vCPU, Python vio 6, 6 y 5 CPUs en tres ejecuciones y no hay cgroup que leer: 11 a 13 workers para 1 vCPU, y en tres ejecuciones dio 6, 6 y 5.
+(3:30, 2:00) Esta línea es la recomendación de la guía de Docker de gunicorn. En una VM es correcta.
+Pero os.cpu_count() ve la máquina, no el límite: en un pod de 1 CPU salen 17 workers, y en Cloud Run 11 a 13.
+Mismo código, tres resultados según dónde corre.
 -->
 
 ---
 
 <div class="bandas">
-  <h2>Qué cuesta contar mal</h2>
+  <h2>1. Un proceso por contenedor, escalar con réplicas</h2>
   <div class="evidencia dos">
-    <Tabla title="Por pod" unit="200 rps · pico de 550 rps" :rows="[
-      { label: 'Memoria', a: '1.430 MiB', b: '95 MiB' },
-      { label: 'Conexiones a la base', a: '170', b: '10' },
-      { label: 'Servidas en el pico', a: '~300/s', b: '550/s' },
-      { label: 'p95 en el pico', a: '> 5 s', b: '≈ 255 ms', loss: true },
-      { label: 'Se rompe a', a: '~450 rps', b: '~710 rps' },
+    <div class="arreglo">
+
+```dockerfile
+CMD ["uvicorn", "app:app", ...]
+```
+
+```sh
+PYTHON_CPU_COUNT=1
+```
+
+<p class="chica">Sin <code>--workers</code>. Si necesitas varios: <code>PYTHON_CPU_COUNT=1</code> (Python 3.13).</p>
+</div>
+    <Tabla title="Por pod, 1 CPU" unit="GKE · 2 pods por versión" :rows="[
+      { label: 'Memoria a 200 rps', a: '1.430 MiB', b: '95 MiB' },
+      { label: 'Pico 550 rps: servidas', a: '~300/s', b: '550/s' },
+      { label: 'Pico: p95', a: '> 5 s', b: '≈ 250 ms', loss: true },
+      { label: 'CPU throttling', a: '100%', b: '0%' },
+      { label: 'Conexiones a PostgreSQL', a: '170', b: '10' },
     ]" />
-    <div class="consecuencia">
-      <p>Tres copias de A agotaron <code>max_connections=500</code> de PostgreSQL: <em>sorry, too many clients already</em>, y A murió.</p>
-      <dl class="reglas">
-        <div><dt>Lo simple</dt><dd>1 proceso por contenedor y escalar con réplicas.</dd></div>
-        <div><dt>Varios</dt><dd><code>PYTHON_CPU_COUNT=1</code> en Python 3.13.</dd></div>
-      </dl>
-    </div>
   </div>
-  <footer><Origen>GKE · 11 nov · 3 corridas, memoria y pico</Origen><Origen>Punto de quiebre: 1 corrida · Conexiones y max_connections: local</Origen></footer>
+  <footer><Origen>GKE · 11 y 15 nov · 3 corridas</Origen></footer>
 </div>
 
 <!--
-(14:30, 3:30) La consecuencia en Kubernetes: 1.430 MiB contra 95 MiB por pod a 200 rps, con límites de memoria eso es OOM y pods reiniciados. Cada worker abre su pool: 170 conexiones por pod contra 10; localmente tres copias de A agotaron max_connections=500 de PostgreSQL y A murió.
-En el pico de 550 rps, A sirvió ~300 ok/s con p95 > 5 s y 100% de throttling de CPU; B sirvió los 550 con p95 ≈ 255 ms. A se rompe a ~450 rps; B a ~710 (una corrida).
-Arreglos: 1 proceso por contenedor y escalar con réplicas, o fijar PYTHON_CPU_COUNT=1 desde Python 3.13. Lo mismo aplica a Cloud Run y a cualquier plataforma con límite de CPU.
+(5:30, 2:30) La solución: un proceso por contenedor y escalar con réplicas. El CMD de B es uvicorn sin --workers.
+Resultado a 1 CPU: 95 MiB contra 1.430 por pod, 170 conexiones a la base contra 10, y en el pico B sirve los 550 rps mientras A llega a ~300 con p95 sobre 5 s.
 -->
 
 ---
@@ -233,7 +154,79 @@ Decir: miren los errores de A en el tablero y los de B no. En los paneles: A sir
 Si el cluster no responde, los paneles muestran la captura del ensayo.
 -->
 
+<!--
+(8:00, 3:00) Antes de la charla: `make proxy`, `make board`, `make load RATE=200 DURATION=60m` y en el tablero espacio (autoplay 20/s) y x x (reiniciar). Hacer: en otra terminal, `make load RATE=550 DURATION=3m` (al terminar volver a `make load RATE=200 DURATION=60m`).
+Decir: miren los errores de A en el tablero y los de B no; A sirve ~300 rps con la CPU frenada al 100%, B sirve los 550.
+Si el cluster no responde, los paneles muestran la captura del ensayo.
+-->
+
 ---
+
+<div class="bandas">
+  <h2>2. Que la señal llegue al proceso</h2>
+  <div class="evidencia dos">
+
+```dockerfile {5}
+FROM python:3.13
+WORKDIR /app
+COPY app/ deploy/bad/ ./
+RUN pip install -r requirements.txt
+CMD ./start.sh
+```
+
+```sh {3}
+#!/bin/sh
+echo "Starting shop..."
+gunicorn -c gunicorn_conf.py app:app
+```
+
+  </div>
+  <div class="lineas">
+    <p>PID 1 es <code>sh</code>: SIGTERM no llega a gunicorn.</p>
+    <p class="loss"><strong>La plataforma espera y mata con SIGKILL: las órdenes en curso quedan cobradas y no guardadas.</strong></p>
+  </div>
+  <footer><Origen>deploy/bad/Dockerfile</Origen><Origen>deploy/bad/start.sh</Origen><Origen>docs.docker.com · CMD en forma shell</Origen></footer>
+</div>
+
+<!--
+(11:00, 1:30) Dos líneas inocentes: CMD en forma shell y un script que lanza gunicorn sin exec.
+Docker lo dice: la forma shell no recibe señales. PID 1 es sh, el SIGTERM muere ahí, y a los 10 s la plataforma manda SIGKILL.
+-->
+
+---
+
+<div class="bandas">
+  <h2>2. Forma exec, o <code>exec</code> en el script</h2>
+  <div class="evidencia dos">
+    <div class="arreglo">
+
+```dockerfile
+CMD ["uvicorn", "app:app", ...]
+```
+
+```sh {2}
+#!/bin/sh
+exec gunicorn -c gunicorn_conf.py app:app
+```
+
+</div>
+<Tabla title="Detener una réplica" unit="A contra B" :rows="[
+      { label: 'Apagado', a: '10,3 s · exit 137', b: '0,5 s · exit 0' },
+      { label: 'Rollout de 2 réplicas', a: '43–47 s', b: '8–12 s' },
+      { label: 'Cobradas sin orden por deploy', a: '26–30', b: '0', loss: true },
+    ]" />
+  </div>
+  <footer><Origen>Apagado: Podman · 15 nov · 5 corridas</Origen><Origen>Rollout: GKE · 15 nov · 3 corridas</Origen><Origen>Cobradas, 200 órdenes/s: GKE · 11 nov · 3 corridas</Origen></footer>
+</div>
+
+<!--
+(12:30, 2:30) Con la forma exec, uvicorn es PID 1 y recibe SIGTERM. En el script, exec reemplaza sh por gunicorn.
+Apagado: 10,3 s y exit 137 contra 0,5 s y exit 0. El rollout de 2 réplicas baja de 43–47 s a 8–12 s.
+Y a 200 órdenes/s, cada deploy de A deja 26–30 cobradas sin orden; B, 0.
+-->
+
+---
+
 <div class="demo vivo">
   <div class="cabecera">
     <h1>En vivo: un deploy</h1>
@@ -252,57 +245,184 @@ Decir: B termina en ~10 s; A tarda ~45 s y, cuando la plataforma la mata con SIG
 Si el cluster no responde, los paneles muestran la captura del ensayo.
 -->
 
----
-
-<div class="bandas">
-  <h2>Deploys lentos que pierden órdenes</h2>
-  <div class="evidencia dos">
-    <Tabla title="Detener una réplica" unit="A contra B · rolling deploy a 200 órdenes/s" :rows="[
-      { label: 'Apagado', a: '10,2–10,3 s', b: '0,4–0,5 s' },
-      { label: 'Exit code', a: '137', b: '0' },
-      { label: 'Errores en el deploy', a: '30–31', b: '0–1' },
-      { label: 'Cobradas sin orden', a: '26–30', b: '0', loss: true },
-    ]" />
-    <div class="arreglo">
-
-```sh
-#!/bin/sh
-exec gunicorn -c gunicorn_conf.py app:app
-```
-
-<p>Sin <code>exec</code>, PID 1 es <code>sh</code> y no recibe SIGTERM. Con <code>exec</code>, gunicorn lo recibe y sale.</p>
-<p class="loss"><strong>Rollout de 2 réplicas:</strong> A 43–47 s, B 8–12 s.</p>
-    </div>
-  </div>
-  <footer><Origen>Apagado: Podman · 15 nov · 3 corridas</Origen><Origen>Deploy: GKE · 11 y 15 nov · 3 corridas</Origen><Origen>docs.docker.com · CMD en forma shell</Origen></footer>
-</div>
-
 <!--
-(20:00, 3:30) La documentación de Docker lo dice: la forma shell no será PID 1 y no recibe señales; la solución es empezar con exec. Apagado de A: 10,2–10,3 s y exit 137; B: 0,4–0,5 s y exit 0.
-En GKE, con un rolling deploy a 200 órdenes/s: A tuvo 30–31 errores de cliente y 26–30 órdenes cobradas sin guardar (se cuentan con una consulta SQL entre cobros y órdenes); B, 0–1 errores y 0 cobradas. Cada deploy de A cobra a clientes que no reciben nada.
-Rollout de 2 réplicas en GKE: A 43–47 s hasta terminar y 84–88 s hasta que se van los pods viejos; B 8–12 s y 25–29 s (los 15 s del preStop incluidos). Cada deploy de A es más lento y además pierde órdenes.
+(15:00, 3:00) Hacer: en el tablero x x para reiniciar los contadores; luego, con la carga base de 200 rps, `make rollout`. En el ensayo: B en ~10 s, A en ~33 s, A 14 cobradas sin orden y B 0.
+Decir: miren cobradas sin orden de cada versión; A pierde órdenes cuando la plataforma la mata con SIGKILL.
+Si el cluster no responde, los paneles muestran la captura del ensayo.
 -->
 
 ---
 
 <div class="bandas">
-  <h2>La escalera: qué arregló cada práctica</h2>
+  <h2>3. Dependencias antes que el código, con lockfile</h2>
   <div class="evidencia">
-    <table class="receta cifras">
-      <thead><tr><th>Práctica</th><th>Qué arregla</th><th>Evidencia</th></tr></thead>
-      <tbody>
-        <tr><th>Workers según el contenedor</th><td>Memoria, pico, arranque</td><td><span class="num">1.430 → 112 MiB</span>, arranque <span class="num">0,7 s</span></td></tr>
-        <tr><th>+ 1 worker, sin <code>exec</code></th><td>Deploy: nada todavía</td><td class="loss"><span class="num">26</span> cobradas sin orden (1 corrida)</td></tr>
-        <tr><th>+ <code>exec</code></th><td>Pérdidas y apagado</td><td><span class="num">0</span> cobradas, apagado <span class="num">0,6 s</span></td></tr>
-        <tr><th>Slim + lockfile + orden de capas</th><td>Build, pull, tamaño</td><td><span class="num">20 → 3,5 s</span> de rebuild, <span class="num">21 → 7 s</span> de pull, <span class="num">1,46 GB → 392 MB</span></td></tr>
-      </tbody>
-    </table>
+
+```dockerfile {3,4}
+FROM python:3.13
+WORKDIR /app
+COPY app/ deploy/bad/ ./
+RUN pip install -r requirements.txt
+```
+
+  <div class="flujo">
+    <p class="loss"><strong>Cada cambio de código invalida la capa de dependencias.</strong></p>
+    <p>Una línea de <code>app.py</code> reinstala todo.</p>
   </div>
-  <footer><Origen>Memoria y cobradas: GKE · 11 nov · 1 corrida por fila</Origen><Origen>Arranque y apagado: Podman · 11 nov</Origen><Origen>Build: Podman · 15 nov</Origen><Origen>Pull: GKE · 15 nov</Origen></footer>
+</div>
+<footer><Origen>deploy/bad/Dockerfile</Origen><Origen>docs.docker.com/build/cache/optimize</Origen></footer>
 </div>
 
 <!--
-(23:30, 1:30) Cada práctica arregla una cosa distinta y ninguna basta sola. Los workers arreglan memoria, pico y arranque pero con 1 worker y sin exec seguimos con 26 cobradas sin orden. El exec arregla los deploys. Slim, lockfile antes del código y buen orden de capas arreglan build, pull y tamaño.
+(18:00, 1:30) A copia todo el código y recién después instala. Cambiar una línea de app.py invalida la capa del pip install y se reinstalan las dependencias.
+La documentación de Docker lo dice: lo que cambia seguido va al final.
+-->
+
+---
+
+<div class="bandas">
+  <h2>3. Lockfile primero, código al final</h2>
+  <div class="evidencia dos">
+
+```dockerfile {2,3,6}
+WORKDIR /app
+COPY app/pyproject.toml app/uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+# ... etapa final
+COPY --from=build /app/.venv .venv
+COPY app/app.py ./
+```
+
+  <div class="arreglo">
+    <Tabla title="Tras cambiar 1 línea" unit="A contra B" :rows="[
+      { label: 'Rebuild', a: '20–21 s', b: '3,5 s' },
+      { label: 'Capas nuevas por cambio', a: '311 MB', b: '0,01 MB' },
+      { label: 'Cloud Build, sin caché', a: '79 s', b: '82 s', loss: true },
+    ]" />
+    <p class="chica">Sin caché en el CI, el orden de capas no ayuda.</p>
+  </div>
+</div>
+<footer><Origen>Rebuild: Podman · 15 nov · 5 corridas</Origen><Origen>Capas nuevas: Podman · 11 nov</Origen><Origen>Cloud Build · 15 nov · 1 corrida</Origen></footer>
+</div>
+
+<!--
+(19:30, 2:00) B copia solo pyproject y uv.lock, instala con --frozen y deja app.py para la última capa.
+Rebuild tras cambiar una línea: 20 s contra 3,5 s. Capas nuevas: 311 MB contra 0,01 MB.
+Ojo: en Cloud Build sin caché da igual, 79 contra 82 s. Si su CI no guarda capas, esto no ayuda.
+-->
+
+---
+
+<div class="demo">
+  <div class="cifra">DEMO</div>
+  <div>
+    <h1>Builds lentos</h1>
+    <p>Cambiamos una línea de <code>app.py</code> y reconstruimos A y B.</p>
+    <p class="aviso"><code>scripts/demo.sh build</code></p>
+  </div>
+</div>
+
+<!--
+(3:30, 2:30) Hacer: `scripts/demo.sh build` (con `make local` ya levantado y las dos imágenes construidas una vez, cache caliente). Imprime el `time` de A y luego el de B, y revierte el cambio solo.
+Señalar: A ~20 s (repite pip install porque el código se copia antes de las dependencias); B ~3,5 s (solo cambia la última capa). Preguntar: ¿cuántas veces por día corre su CI? Multiplicar la diferencia por esa cifra.
+Si el build tarda por la red, dejar correr y hablar del slide siguiente; los números ya están medidos.
+-->
+
+<!--
+(21:30, 2:00) Hacer: `scripts/demo.sh build` (con `make local` ya levantado y las dos imágenes construidas una vez, cache caliente). Imprime el `time` de A y luego el de B, y revierte el cambio solo.
+Señalar: A ~20 s (repite pip install); B ~3,5 s (solo cambia la última capa).
+Si el build tarda por la red, dejar correr y seguir; los números ya están medidos.
+-->
+
+---
+
+<div class="bandas">
+  <h2>4. Imagen slim y multi-stage</h2>
+  <div class="evidencia">
+
+```dockerfile {1}
+FROM python:3.13
+```
+
+  <div class="flujo">
+    <p class="loss"><strong>Cada nodo nuevo baja la imagen antes de arrancar.</strong></p>
+    <p>El autoescalado espera.</p>
+  </div>
+</div>
+<footer><Origen>deploy/bad/Dockerfile</Origen></footer>
+</div>
+
+<!--
+(23:30, 1:30) La imagen completa trae compiladores y herramientas que la app no usa en runtime.
+Cuando el autoscaler agrega un nodo, el pull ocurre antes de que arranque la réplica: el tráfico espera.
+-->
+
+---
+
+<div class="bandas">
+  <h2>4. Dos etapas sobre <code>slim</code></h2>
+  <div class="evidencia dos">
+
+```dockerfile {1,4}
+FROM python:3.13-slim AS build
+# ... uv sync
+
+FROM python:3.13-slim
+RUN useradd --system --uid 1000 app
+WORKDIR /app
+COPY --from=build /app/.venv .venv
+```
+
+  <Tabla title="Imagen y nodo frío" unit="A contra B" :rows="[
+    { label: 'Imagen', a: '1,46 GB', b: '392 MB' },
+    { label: 'Pull en nodo frío', a: '21,4 s', b: '7,0 s' },
+    { label: 'Réplica nueva, hasta Ready', a: '39–45 s', b: '13 s', loss: true },
+    { label: 'Vulnerabilidades conocidas', a: '4.265', b: '212' },
+  ]" />
+</div>
+<footer><Origen>GKE · 15 nov · pull y nodo frío</Origen><Origen>Trivy 0.76.2</Origen></footer>
+</div>
+
+<!--
+(25:00, 2:00) B usa dos etapas sobre slim: se instala en una, y solo el .venv pasa a la imagen final.
+1,46 GB contra 392 MB; el pull en un nodo frío baja de 21 a 7 s, y la réplica nueva queda Ready en 13 s en vez de 39–45.
+Trivy: 4.265 vulnerabilidades conocidas contra 212.
+-->
+
+---
+
+<div class="bandas">
+  <h2>Además, cuatro líneas</h2>
+  <div class="evidencia dos" style="display:grid;grid-template-columns:1fr 1fr;gap:20px 24px;align-items:start">
+
+```dockerfile
+ARG UV_COMPILE_BYTECODE=1
+```
+
+```dockerfile
+USER 1000
+```
+
+```dockerfile
+ENV PYTHONUNBUFFERED=1
+```
+
+```text
+# .dockerignore
+*
+!app/
+!deploy/
+```
+
+  </div>
+  <div class="lineas">
+    <p><strong>Bytecode:</strong> arranque 0,9 s contra 1,6 s sin él.</p>
+    <p>Sin root · logs sin buffer · <code>.dockerignore</code> como lista blanca.</p>
+  </div>
+  <footer><Origen>Arranque: Podman · 11 nov</Origen><Origen>deploy/good/Dockerfile</Origen></footer>
+</div>
+
+<!--
+(27:00, 1:00) Cuatro líneas más, rápido: bytecode compilado en el build (arranque 0,9 s contra 1,6 s), usuario no root, logs sin buffer, y un .dockerignore que parte en * y deja pasar solo app/ y deploy/.
 -->
 
 ---
@@ -312,26 +432,24 @@ Rollout de 2 réplicas en GKE: A 43–47 s hasta terminar y 84–88 s hasta que 
   <div class="evidencia">
     <Tabla title="A contra B" unit="1 CPU por contenedor" :rows="[
       { label: 'Memoria por pod', a: '1.430 MiB', b: '95 MiB' },
-      { label: 'Conexiones a la base', a: '170', b: '10' },
-      { label: 'Servidas en el pico de 550 rps', a: '~300/s', b: '550/s', loss: true },
-      { label: 'Réplica nueva, nodo frío', a: '39–45 s', b: '13 s' },
-      { label: 'Rollout de 2 réplicas', a: '43–47 s', b: '8–12 s' },
-      { label: 'Cobradas sin orden', a: '26–30', b: '0', loss: true },
-      { label: 'Imagen', a: '1,46 GB', b: '392 MB' },
+      { label: 'Pico de 550 rps, servidas', a: '~300/s', b: '550/s', loss: true },
+      { label: 'Apagado', a: '10,3 s', b: '0,5 s' },
+      { label: 'Cobradas sin orden por deploy', a: '26–30', b: '0', loss: true },
       { label: 'Rebuild, 1 línea', a: '20–21 s', b: '3,5 s' },
-      { label: 'Capas nuevas por deploy', a: '311 MB', b: '0,01 MB' },
+      { label: 'Imagen', a: '1,46 GB', b: '392 MB' },
+      { label: 'Réplica nueva, nodo frío', a: '39–45 s', b: '13 s' },
     ]" />
     <ol class="preparacion">
-      <li>Cuenta los workers desde el límite del contenedor, o 1 proceso por réplica.</li>
-      <li><code>exec</code> al final del script de arranque y CMD en forma exec.</li>
+      <li>Un proceso por contenedor; escala con réplicas.</li>
+      <li><code>exec</code>: CMD en forma exec o <code>exec</code> en el script.</li>
       <li>Lockfile y dependencias antes del código.</li>
-      <li>Base <code>slim</code> con versión fija y multi-stage.</li>
-      <li>Conoce las reglas de tu plataforma: límites, apagado, CPU.</li>
+      <li>Base <code>slim</code> y multi-stage.</li>
     </ol>
   </div>
-  <footer><Origen>GKE · 11 y 15 nov · memoria, pico, deploy, arranque</Origen><Origen>Podman · 15 nov · build</Origen></footer>
+  <footer><Origen>GKE · 11 y 15 nov</Origen><Origen>Podman · 15 nov</Origen></footer>
 </div>
 
 <!--
-(25:00, 3:00) Cierre. Tres problemas de producción, tres causas: dónde corre tu app (workers y memoria), cómo la apaga la plataforma (señales) y cuánto pesa lo que despliegas (capas). Las respuestas cambian en una VM, en Kubernetes o en Cloud Run; las preguntas son las mismas. Para el lunes, cinco cosas; el checklist completo y los scripts están en el repo. Preguntas desde el minuto 28.
+(28:00, 2:00) Cierre. Cuatro prácticas, cuatro causas: dónde corre tu app, cómo la apaga la plataforma, cómo ordenas las capas y cuánto pesa lo que despliegas.
+Para el lunes, una acción por práctica. El repo tiene los scripts para reproducir cada número. Preguntas.
 -->
