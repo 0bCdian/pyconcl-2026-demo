@@ -120,6 +120,7 @@ Solución: cuenta desde el límite. Un proceso por contenedor, o PYTHON_CPU_COUN
       { label: 'Memoria', a: '1.430 MiB', b: '95 MiB', loss: true },
       { label: 'Procesos', a: '18', b: '1' },
       { label: 'Conexiones a PostgreSQL', a: '170', b: '10' },
+      { label: 'Con límite de 200 MiB', a: 'OOMKilled', b: '0 errores', loss: true },
     ]" />
   </div>
   <footer><Origen>GKE · 11 y 15 nov · 3 corridas</Origen><Origen>docs.python.org/3/using/cmdline.html · PYTHON_CPU_COUNT</Origen></footer>
@@ -127,7 +128,7 @@ Solución: cuenta desde el límite. Un proceso por contenedor, o PYTHON_CPU_COUN
 
 <!--
 (5:00) Con la misma carga, A usa 1.430 MiB por pod y B 95. Cada worker carga la app entera y abre su propio pool de conexiones: 170 conexiones a la base por pod contra 10.
-En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: en local, tres copias de A agotaron max_connections de PostgreSQL.
+Las dos tienen el mismo límite (2 GiB). Si se lo bajamos a 200 MiB a las dos: A no llega a arrancar, el kernel la mata por memoria (OOMKilled) una y otra vez, y a 200 rps falla el 100% de lo que le llega; B sigue en 94 MiB con 0 errores. En Kubernetes eso es memoria que reservas y pagas, y conexiones que se acaban: en local, tres copias de A agotaron max_connections de PostgreSQL.
 -->
 
 ---
