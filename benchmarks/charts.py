@@ -20,9 +20,7 @@ DEMO = 'namespace="demo"'
 CHARTS = {
     "memory": ("MiB por pod", f'avg by (container) (container_memory_working_set_bytes{{{DEMO}, container=~"bad|good"}}) / 2^20'),
     "served": ("requests OK por segundo", 'sum by (scenario) (rate(k6_http_reqs_total{scenario=~"bad|good", expected_response="true"}[30s]))'),
-    "throttling": ("% de períodos de CPU frenados", f'100 * sum by (container) (rate(container_cpu_cfs_throttled_periods_total{{{DEMO}, container=~"bad|good"}}[1m])) / sum by (container) (rate(container_cpu_cfs_periods_total{{{DEMO}, container=~"bad|good"}}[1m]))'),
     "ramp": ("requests OK por segundo", 'sum by (scenario) (rate(k6_http_reqs_total{scenario=~"good|workers2", expected_response="true"}[30s]))'),
-    "ramp_memory": ("MiB en total", f'sum by (container) (container_memory_working_set_bytes{{{DEMO}, container=~"good|workers2"}}) / 2^20'),
 }
 LABELS = {"bad": ("A", LOSS), "good": ("B", INK), "workers2": ("1 pod × 2 workers", LOSS)}
 
