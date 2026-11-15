@@ -228,7 +228,7 @@ Arreglos: 1 proceso por contenedor y escalar con réplicas, o fijar PYTHON_CPU_C
 </div>
 
 <!--
-(~3 min) Antes de la charla: `make load RATE=200 DURATION=60m` y la arena en autoplay. Hacer: en otra terminal, `make load RATE=550 DURATION=3m` (reemplaza la carga base; al terminar volver a `make load RATE=200 DURATION=60m`).
+(~3 min) Antes de la charla: `make proxy`, `make board`, `make load RATE=200 DURATION=60m` y en el tablero espacio (autoplay 20/s) y x x (reiniciar). Hacer: en otra terminal, `make load RATE=550 DURATION=3m` (reemplaza la carga base; al terminar volver a `make load RATE=200 DURATION=60m`).
 Decir: miren los errores de A en el tablero y los de B no. En los paneles: A sirve ~300 rps con su CPU frenada al 100%; B sirve los 550. Prometheus va ~15 s atrasado.
 Si el cluster no responde, los paneles muestran la captura del ensayo.
 -->
@@ -247,7 +247,7 @@ Si el cluster no responde, los paneles muestran la captura del ensayo.
 </div>
 
 <!--
-(~3 min) Hacer: con la carga base de 200 rps, `make rollout`.
+(~3 min) Hacer: en el tablero x x para reiniciar los contadores; luego, con la carga base de 200 rps, `make rollout`. En el ensayo: B en ~10 s, A en ~33 s, A 14 cobradas sin orden y B 0.
 Decir: B termina en ~10 s; A tarda ~45 s y, cuando la plataforma la mata con SIGKILL, pierde órdenes ya cobradas. Mostrar el contador de cobradas sin orden de cada versión en el tablero.
 Si el cluster no responde, los paneles muestran la captura del ensayo.
 -->
