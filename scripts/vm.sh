@@ -36,10 +36,10 @@ remote '
   set -eu
   sudo apt-get update -qq && sudo apt-get install -y -qq python3-venv >/dev/null
   sudo systemctl stop shop 2>/dev/null || true
-  sudo rm -rf /opt/shop && sudo mv shop /opt/shop && sudo chown -R root:root /opt/shop && sudo chmod 600 /opt/shop/env
+  sudo rm -rf /opt/shop && sudo mv shop /opt/shop && sudo chown -R root:root /opt/shop && sudo chmod 755 /opt/shop && sudo chmod 600 /opt/shop/env
   sudo python3 -m venv /opt/shop/venv && sudo /opt/shop/venv/bin/pip install -q -r /opt/shop/requirements.txt
   sudo mv /opt/shop/shop.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable -q --now shop
-  until curl -sf localhost:8000/health >/dev/null; do sleep 0.5; done
+  for _ in $(seq 120); do curl -sf localhost:8000/health >/dev/null && break; sleep 0.5; done; systemctl is-active shop
   echo "nproc=$(nproc) workers=$(($(pgrep -c -f gunicorn) - 1))"
 '
 echo "VM: http://$(out vm_address):8000"

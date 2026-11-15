@@ -138,3 +138,12 @@
 .lateral .qr { flex: none; }
 .cabecera { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 32px; }
 .cabecera h1 { white-space: nowrap; flex: none; }
+.demo .cifra { font-size: 190px; }
+.resumen > .evidencia { gap: 28px; align-items: flex-start; }
+.resumen > .evidencia > * { flex: 1 1 0; min-width: 0; }
+.resumen .tabla { padding: 10px 14px 8px; }
+.resumen .tabla figcaption { font-size: 28px; }
+.resumen .tabla tbody th { font-size: 16px; padding: 5px 8px 5px 0; }
+.resumen .tabla td { font-size: 16px; padding: 5px 0 5px 12px; }
+.resumen .preparacion li { font-size: 20px; padding: 9px 0 9px 48px; }
+.resumen > h2 { font-size: 48px; }
