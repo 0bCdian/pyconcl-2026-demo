@@ -128,7 +128,7 @@ Si el build tarda por la red, dejar correr y hablar del slide siguiente; los nú
       <p class="loss"><strong>CI sin caché</strong> (Cloud Build): 79 s contra 82 s. Si el CI no guarda las capas, el orden no ayuda.</p>
     </div>
   </div>
-  <footer><Origen>Podman · 15 nov · 3 corridas · scripts/demo.sh build</Origen><Origen>Cloud Build · 15 nov · 1 corrida</Origen><Origen>docs.docker.com/build/cache/optimize</Origen></footer>
+  <footer><Origen>Rebuild: Podman · 15 nov · 5 corridas</Origen><Origen>Capas nuevas: Podman · 11 nov · image.sh</Origen><Origen>Comprimida: GKE · pull</Origen><Origen>Cloud Build · 15 nov · 1 corrida</Origen><Origen>docs.docker.com/build/cache/optimize</Origen></footer>
 </div>
 
 <!--
@@ -150,7 +150,7 @@ Ojo, medido en Cloud Build sin caché: build completo A 79 s, B 82 s, iguales. E
 
 <!--
 (8:00, 2:00) Hacer: `scripts/demo.sh start`. Para las réplicas de `make local` y levanta un contenedor de cada versión con 1 CPU, midiendo con `time` hasta el primer 200 de /health. Imprime también cuántos procesos tiene cada uno.
-Señalar: A ~11 s, B ~2 s; y los procesos (17 contra 1). Pregunta para la audiencia: si el tráfico sube ahora, ¿cuánto tardan en llegar las réplicas nuevas?
+Señalar: A ~9–13 s, B ~2 s; y los procesos (17 contra 1). Pregunta para la audiencia: si el tráfico sube ahora, ¿cuánto tardan en llegar las réplicas nuevas?
 -->
 
 ---
@@ -159,7 +159,7 @@ Señalar: A ~11 s, B ~2 s; y los procesos (17 contra 1). Pregunta para la audien
   <h2>Autoescalado lento</h2>
   <div class="evidencia dos">
     <Tabla title="Réplica nueva" unit="A contra B" :rows="[
-      { label: 'Arranque en Podman', a: '11,2–11,5 s', b: '2,2 s' },
+      { label: 'Arranque en Podman', a: '9–13 s', b: '2,2 s' },
       { label: 'Arranque en GKE, imagen ya en el nodo', a: '20–26 s', b: '5 s' },
       { label: 'Réplica nueva en nodo frío (pull + arranque)', a: '39–45 s', b: '13 s', loss: true },
     ]" />
@@ -172,7 +172,7 @@ Señalar: A ~11 s, B ~2 s; y los procesos (17 contra 1). Pregunta para la audien
 </div>
 
 <!--
-(10:00, 2:00) Arranque: 11,2–11,5 s contra 2,2 s, porque A arranca 17 procesos que importan pandas cada uno en 1 CPU. En GKE, con la imagen ya en el nodo: 20–26 s contra 5 s. En un nodo frío, que es lo que pasa cuando el autoscaler agrega nodos, se suma el pull (21 s contra 7 s): 39–45 s contra 13 s hasta que la réplica recibe tráfico. El autoscaler agrega réplicas cuando ya hay tráfico; cada segundo de arranque es tráfico que cae sobre las réplicas que ya existen.
+(10:00, 2:00) Arranque: 9–13 s contra 2,2 s (5 corridas), porque A arranca 17 procesos que importan pandas cada uno en 1 CPU. En GKE, con la imagen ya en el nodo: 20–26 s contra 5 s. En un nodo frío, que es lo que pasa cuando el autoscaler agrega nodos, se suma el pull (21 s contra 7 s): 39–45 s contra 13 s hasta que la réplica recibe tráfico. El autoscaler agrega réplicas cuando ya hay tráfico; cada segundo de arranque es tráfico que cae sobre las réplicas que ya existen.
 -->
 
 ---
@@ -197,7 +197,7 @@ Señalar: A ~11 s, B ~2 s; y los procesos (17 contra 1). Pregunta para la audien
 
 <!--
 (12:00, 2:30) Esta config la copiamos de la guía oficial de Docker de gunicorn. En una VM es correcta: usa los 8 núcleos. En el pod, con límite de 1 CPU en la misma máquina, os.cpu_count() sigue diciendo 8 (el límite vive en cgroups, cpu.max) y salen 17 workers en 1 CPU. Python 3.13 documenta PYTHON_CPU_COUNT para "usuarios que necesitan limitar la CPU de un contenedor".
-Mismo código, mismo cálculo, tres resultados según la plataforma. En la VM es correcto: con la misma config, A sirvió 550 rps con 0% de errores y p95 de 212 ms, usando 1,45 GB de 32 GB y una carga de 1,8 sobre 8 núcleos. En Cloud Run con 1 vCPU, Python vio 6, 6 y 5 CPUs en tres ejecuciones y no hay cgroup que leer: 11 a 13 workers para 1 vCPU, y el número cambia según la máquina que te toque.
+Mismo código, mismo cálculo, tres resultados según la plataforma. En la VM es correcto: con la misma config, A sirvió 550 rps con 0% de errores y p95 de 212 ms, usando 1,45 GB de 32 GB y una carga de 1,8 sobre 8 núcleos. En Cloud Run con 1 vCPU, Python vio 6, 6 y 5 CPUs en tres ejecuciones y no hay cgroup que leer: 11 a 13 workers para 1 vCPU, y en tres ejecuciones dio 6, 6 y 5.
 -->
 
 ---
@@ -284,14 +284,14 @@ Rollout de 2 réplicas en GKE: A 43–47 s hasta terminar y 84–88 s hasta que 
     <table class="receta cifras">
       <thead><tr><th>Práctica</th><th>Qué arregla</th><th>Evidencia</th></tr></thead>
       <tbody>
-        <tr><th>Workers según el contenedor</th><td>Memoria, pico, arranque</td><td><span class="num">1.430 → 95 MiB</span>, <span class="num">11 → 2 s</span></td></tr>
+        <tr><th>Workers según el contenedor</th><td>Memoria, pico, arranque</td><td><span class="num">1.430 → 112 MiB</span>, arranque <span class="num">0,7 s</span></td></tr>
         <tr><th>+ 1 worker, sin <code>exec</code></th><td>Deploy: nada todavía</td><td class="loss"><span class="num">26</span> cobradas sin orden (1 corrida)</td></tr>
-        <tr><th>+ <code>exec</code></th><td>Pérdidas y apagado</td><td><span class="num">0</span> cobradas, <span class="num">0,4 s</span></td></tr>
-        <tr><th>Slim + lockfile + orden de capas</th><td>Build, pull, tamaño</td><td><span class="num">20 → 3,5 s</span> de rebuild, <span class="num">45 → 13 s</span> en nodo frío, <span class="num">1,46 GB → 392 MB</span></td></tr>
+        <tr><th>+ <code>exec</code></th><td>Pérdidas y apagado</td><td><span class="num">0</span> cobradas, apagado <span class="num">0,6 s</span></td></tr>
+        <tr><th>Slim + lockfile + orden de capas</th><td>Build, pull, tamaño</td><td><span class="num">20 → 3,5 s</span> de rebuild, <span class="num">21 → 7 s</span> de pull, <span class="num">1,46 GB → 392 MB</span></td></tr>
       </tbody>
     </table>
   </div>
-  <footer><Origen>GKE · 11 nov · 1 corrida por fila de la escalera</Origen><Origen>Podman · 15 nov · 3 corridas</Origen></footer>
+  <footer><Origen>Memoria y cobradas: GKE · 11 nov · 1 corrida por fila</Origen><Origen>Arranque y apagado: Podman · 11 nov</Origen><Origen>Build: Podman · 15 nov</Origen><Origen>Pull: GKE · 15 nov</Origen></footer>
 </div>
 
 <!--
