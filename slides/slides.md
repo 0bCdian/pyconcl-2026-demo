@@ -88,7 +88,7 @@ async def create_order(order: Order):
     <thead><tr><th></th><th>A: el tutorial</th><th>B: las prácticas</th></tr></thead>
     <tbody>
       <tr><th>Base</th><td><code>python:3.13</code></td><td><code>3.13-slim</code></td></tr>
-      <tr><th>Dependencias</th><td><code>pip</code></td><td><code>uv.lock</code></td></tr>
+      <tr><th>Dependencias</th><td>después del código</td><td>antes del código, con lockfile</td></tr>
       <tr><th>Arranque</th><td><code>CMD ./start.sh</code></td><td><code>CMD ["uvicorn", …]</code></td></tr>
       <tr><th>Procesos</th><td>gunicorn, <code>cpu_count()*2+1</code></td><td>1</td></tr>
     </tbody>
@@ -338,6 +338,7 @@ COPY app/app.py ./
 <!--
 (15:30) Situación: A copia todo el código y después instala. Problema: cambiar una línea de app.py invalida la capa de pip install y reinstala todo.
 Solución: copiar solo el lockfile, instalar, y dejar el código para la última capa. Lo que cambia seguido va al final.
+No es pip contra uv: con pip es igual, requirements.txt primero (idealmente con hashes y --require-hashes), pip install --no-cache-dir, y el código al final. uv suma velocidad y --frozen, que instala exactamente el lockfile sin resolver de nuevo; en B se copia su binario desde la imagen oficial, fijado a una versión, y no queda en la imagen final.
 -->
 
 ---
