@@ -409,7 +409,11 @@ Solución: instalar en una etapa y copiar solo el .venv a una imagen slim. 1,46 
       <li><code>slim</code> y multi-stage. <span class="muted">pull 21 → 7 s</span></li>
     </ol>
   </div>
-  <footer><Origen>github.com/0bCdian/pyconcl-2026-demo · cada número tiene su script</Origen></footer>
+  <div class="enlaces">
+    <a href="https://github.com/0bCdian/pyconcl-2026-demo">github.com/0bCdian/pyconcl-2026-demo</a>
+    <a href="https://blog.diegoparra.dev">blog.diegoparra.dev</a>
+  </div>
+  <footer><Origen>Cada número tiene su script en el repo</Origen></footer>
 </div>
 
 <!--
