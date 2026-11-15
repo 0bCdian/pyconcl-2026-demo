@@ -58,3 +58,9 @@ variable "vm_ssh_public_key_file" {
   type        = string
   default     = "~/.ssh/pycon-vm.pub"
 }
+
+variable "vm_and_cloud_run" {
+  description = "Also create the VM and the Cloud Run probe that compare os.cpu_count() outside a pod."
+  type        = bool
+  default     = false
+}

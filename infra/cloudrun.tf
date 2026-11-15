@@ -15,7 +15,7 @@ locals {
 }
 
 resource "google_cloud_run_v2_job" "cpu_probe" {
-  count = local.on ? 1 : 0
+  count = local.on && var.vm_and_cloud_run ? 1 : 0
 
   name                = "${var.name_prefix}-cpu-probe"
   location            = var.region
@@ -39,5 +39,5 @@ resource "google_cloud_run_v2_job" "cpu_probe" {
 }
 
 output "cpu_probe_job" {
-  value = local.on ? google_cloud_run_v2_job.cpu_probe[0].name : null
+  value = one(google_cloud_run_v2_job.cpu_probe[*].name)
 }
