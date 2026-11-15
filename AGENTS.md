@@ -30,3 +30,18 @@ Read first: `README.md` (results and how to reproduce each number), `ARCHITECTUR
 - Orphan disk `pvc-f58b3ff7-7802-4ec2-855d-6465368f069e` (10 GB) still exists; delete it only with Diego's approval.
 - `.dockerignore` is a whitelist (`app/`, `deploy/`): the build context used to include `slides/node_modules`.
 - On this Podman, each `FROM` checks the registry (~7 s); the build demo uses `--pull=never`.
+
+## Two Google Cloud projects
+
+- `my-sandbox-project` (company sandbox, account in the gcloud `default` configuration): `infra/backend.tf` and `infra/terraform.tfvars` point here, with the default `.terraform/` directory. Measurements of 11 and 15 November were taken here.
+- `my-project` (Diego's personal project, gcloud configuration `pycon`): the cluster for the talk. Nodes are private, with Cloud NAT; no VM or Cloud Run probe (`vm_and_cloud_run = false`).
+- Work on the personal project with its own state and token, from the repo root:
+  ```sh
+  export TF_DATA_DIR=.terraform-personal GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token --configuration pycon)
+  tofu -chdir=infra plan -var-file=personal.tfvars -var stage=on -out=up.tfplan
+  tofu -chdir=infra apply -var-file=personal.tfvars -var stage=on up.tfplan   # the same -var-file is required: terraform.tfvars is auto-loaded
+  make kubeconfig images monitoring cnpg deploy
+  ```
+  `infra/personal.tfvars` (git-ignored) holds `project_id`, `region` and `zone`; the backend is set with `tofu init -backend-config=bucket=my-project-tofu-state -backend-config=prefix=pycon` under that `TF_DATA_DIR`.
+- `infra/bootstrap/` has a local state for the personal project: APIs, the state bucket and a 30 EUR budget.
+- Diego authorized applying plans in the personal project without asking when they only create or change. Destroy or replace still needs his approval.
