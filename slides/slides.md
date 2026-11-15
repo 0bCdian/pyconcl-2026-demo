@@ -57,7 +57,7 @@ layout: none
     <li>Cuántas CPUs ve tu app</li>
     <li>Réplicas, no <code>--workers</code></li>
     <li>Que la señal llegue al proceso</li>
-    <li>Dependencias antes que el código</li>
+    <li>Dependencias bloqueadas y antes que el código</li>
     <li>Imagen <code>slim</code> y multi-stage</li>
   </ol>
 </div>
@@ -314,7 +314,7 @@ Apagado de 10 s con SIGKILL a medio segundo. Con 200 órdenes por segundo, cada 
 ---
 
 <div class="bandas">
-  <h2>4. Dependencias antes que el código</h2>
+  <h2>4. Dependencias bloqueadas y antes que el código</h2>
   <div class="evidencia dos">
 
 ```dockerfile {3,4}
@@ -332,13 +332,21 @@ COPY app/app.py ./
 ```
 
   </div>
+  <table class="receta cifras compacta">
+    <thead><tr><th></th><th>pip</th><th>uv</th></tr></thead>
+    <tbody>
+      <tr><th>Lockfile</th><td><code>requirements.txt</code> con hashes (pip-compile)</td><td><code>uv.lock</code></td></tr>
+      <tr><th>Instalar exactamente el lock</th><td><code>pip install --require-hashes -r requirements.txt</code></td><td><code>uv sync --locked</code></td></tr>
+    </tbody>
+  </table>
   <footer><Origen>docs.docker.com/build/cache/optimize</Origen><Origen>docs.astral.sh/uv/guides/integration/docker</Origen></footer>
 </div>
 
 <!--
-(15:30) Situación: A copia todo el código y después instala. Problema: cambiar una línea de app.py invalida la capa de pip install y reinstala todo.
-Solución: copiar solo el lockfile, instalar, y dejar el código para la última capa. Lo que cambia seguido va al final.
-No es pip contra uv: con pip es igual, requirements.txt primero (idealmente con hashes y --require-hashes), pip install --no-cache-dir, y el código al final. uv suma velocidad y --frozen, que instala exactamente el lockfile sin resolver de nuevo; en B se copia su binario desde la imagen oficial, fijado a una versión, y no queda en la imagen final.
+(15:30) Son dos cosas distintas, y conviene decirlas por separado.
+Bloquear: instalar exactamente lo que dice un lockfile, con cualquier gestor (la tabla: pip con requirements.txt compilado con hashes, uv con uv.lock). Da reproducibilidad: dos builds del mismo commit instalan lo mismo, y con hashes, los mismos archivos. Ojo: A también tiene las versiones fijadas con ==, solo le faltan los hashes; el tiempo no sale de ahí.
+Ordenar: A copia todo el código y después instala, así que cambiar una línea de app.py invalida la capa de dependencias y reinstala todo. B copia solo el lockfile, instala, y deja el código para la última capa. De eso salen los números de la slide siguiente.
+B usa --frozen (instala el lock tal cual); --locked además falla si uv.lock no coincide con pyproject.toml, como npm ci. No es pip contra uv: con pip se hace igual (requirements.txt primero, pip install --no-cache-dir, código al final). uv suma velocidad; en B su binario se copia desde la imagen oficial, fijado a una versión, y no queda en la imagen final.
 -->
 
 ---
@@ -411,7 +419,7 @@ Solución: instalar en una etapa y copiar solo el .venv a una imagen slim. 1,46 
       <li>Cuenta las CPUs del contenedor, no de la máquina. <span class="muted">1.430 → 95 MiB</span></li>
       <li>Escala con réplicas; la plataforma ya es tu process manager.</li>
       <li><code>exec</code>: que el SIGTERM llegue. <span class="muted">26–30 → 0 cobradas sin orden</span></li>
-      <li>Lockfile primero, código al final. <span class="muted">20 → 3,5 s</span></li>
+      <li>Dependencias bloqueadas, y el código al final. <span class="muted">20 → 3,5 s</span></li>
       <li><code>slim</code> y multi-stage. <span class="muted">pull 21 → 7 s</span></li>
     </ol>
   </div>
