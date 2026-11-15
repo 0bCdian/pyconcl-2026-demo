@@ -421,29 +421,3 @@ Solución: instalar en una etapa y copiar solo el .venv a una imagen slim. 1,46 
 (23:30) La misma línea de código se comporta distinto en una VM, en un pod con límite y en Cloud Run. Las cinco cosas salen de una pregunta: dónde corre mi código y qué le pide esa plataforma.
 El repo tiene los scripts para reproducir cada número. Preguntas.
 -->
-
----
-
-<div class="bandas">
-  <h2>Fuentes</h2>
-  <ul class="fuentes">
-    <li>gunicorn.org/guides/docker · gunicorn.org/design</li>
-    <li>docs.python.org/3/library/os.html#os.cpu_count · docs.python.org/3/using/cmdline.html (PYTHON_CPU_COUNT, -X cpu_count)</li>
-    <li>fastapi.tiangolo.com/deployment/docker</li>
-    <li>kubernetes.io/docs/concepts/configuration/manage-resources-containers</li>
-    <li>kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle (termination)</li>
-    <li>kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale</li>
-    <li>docs.docker.com/reference/dockerfile (shell and exec form) · docs.docker.com/reference/cli/docker/container/stop</li>
-    <li>docs.docker.com/build/cache/optimize · docs.docker.com/build/building/best-practices</li>
-    <li>docs.astral.sh/uv/guides/integration/docker</li>
-    <li>Mediciones y scripts: github.com/0bCdian/pyconcl-2026-demo</li>
-  </ul>
-</div>
-
-<style>
-.fuentes { margin: 0; padding-left: 24px; font-size: 21px; line-height: 1.6; font-family: var(--mono); }
-</style>
-
-<!--
-Fuentes, por si preguntan. Cada número del deck tiene su script en el repo.
--->
